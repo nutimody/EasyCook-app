@@ -1,16 +1,19 @@
 // import { useEffect } from "react";
-import { useState } from "react";
+import React, { useMemo,useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, Text, Button, FlatList,Image, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, Button, FlatList, Image, TouchableOpacity, ActivityIndicator, StyleSheet, Platform, ScrollView } from "react-native";
 import { useFonts,PlayfairDisplay_400Regular, PlayfairDisplay_700Bold} from "@expo-google-fonts/playfair-display";
 import { Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
 import { fetchRecipesByCuisine } from "./src/api/spoonacular";
+import logo from "./assets/easycook-logo.png";
 
 // console.log("fetchRecipesByCuisine is:", fetchRecipesByCuisine);
 
 export default function App() {
-  const [recipes, setRecipes] = useState ([]);
+  const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState (false);
+  const [activeCuisine, setActiveCuisine] = useState(null);
+
   const [fontsLoaded] = useFonts({
   PlayfairDisplay_700Bold,
   PlayfairDisplay_400Regular,
@@ -23,9 +26,10 @@ if (!fontsLoaded) return null;
 
   const loadRecipes = async (cuisine) => {
     try {
+      setActiveCuisine (cuisine);
       setLoading (true);
       const data = await fetchRecipesByCuisine (cuisine, 10);
-      setRecipes(data.results);
+      setRecipes(data.results || []);
     } catch (err) {
       console.log ("Error fetching recipes:", err.message);
     } finally {
@@ -34,57 +38,120 @@ if (!fontsLoaded) return null;
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}> 
-        Choose a Cuisine 
-      </Text>
-      <View style={styles.buttonRow}>
-        <TouchableOpacity
-        style={styles.button}
-        onPress={() => loadRecipes("indian")}
-        >
-          <Text
-          style={styles.buttonText}>
-            Indian
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-        style={styles.button}
-        onPress={() => loadRecipes("italian")}
-        >
-          <Text
-          style={styles.buttonText}>
-            Italian
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-        style={styles.button}
-        onPress={() => loadRecipes("mexican")}
-        >
-          <Text
-          style={styles.buttonText}>
-            Mexican
-          </Text>
-        </TouchableOpacity>
-        {/* <Button title="Italian" onPress={() => loadRecipes("italian")}/>
-        <Button title="Mexican" onPress={() => loadRecipes("mexican")}/> */}
-      </View>
+  <SafeAreaView style={styles.safe}>
+    <FlatList
+      data={recipes}
+      keyExtractor={(item) => item.id.toString()}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.listContainer}
+      ListHeaderComponent={
+        <>
+          {/* ===== Top Bar ===== */}
+          <View style={styles.topBar}>
+            <TouchableOpacity activeOpacity={0.7} style={styles.iconCircle}>
+              <Image source={logo} style={styles.logoImage} resizeMode="contain" />
+            </TouchableOpacity>
 
-      {loading && <ActivityIndicator size="large" style={styles.loader}/>}
+            <Text style={styles.locationText}>Santa Clara, CA</Text>
 
-      <FlatList
-        data={recipes}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContainer}
-        renderItem={({item}) => (
-          <View style={styles.card}>
-            <Image source={{uri: item.image}} style={styles.image}/>
-            <Text style={styles.body}> {item.title} </Text>
+            <TouchableOpacity activeOpacity={0.7} style={styles.iconCircle}>
+              <View style={styles.menuIcon}>
+                <View style={styles.menuLine} />
+                <View style={styles.menuLine} />
+                <View style={styles.menuLine} />
+              </View>
+            </TouchableOpacity>
           </View>
-        )
-        }
-      />
-      </SafeAreaView>
+
+          {/* ===== Title ===== */}
+          <Text style={styles.header}>Choose a Cuisine</Text>
+
+          {/* ===== Chips ===== */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipRow}
+            style={styles.chipScroll}
+          >
+            <CuisineChip
+              label="Indian"
+              active={activeCuisine === "indian"}
+              onPress={() => loadRecipes("indian")}
+            />
+            <CuisineChip
+              label="Italian"
+              active={activeCuisine === "italian"}
+              onPress={() => loadRecipes("italian")}
+            />
+            <CuisineChip
+              label="Mexican"
+              active={activeCuisine === "mexican"}
+              onPress={() => loadRecipes("mexican")}
+            />
+            <CuisineChip
+              label="Thai"
+              active={activeCuisine === "thai"}
+              onPress={() => loadRecipes("thai")}
+            />
+            <CuisineChip
+              label="Chinese"
+              active={activeCuisine === "chinese"}
+              onPress={() => loadRecipes("chinese")}
+            />
+            <CuisineChip
+              label="Japanese"
+              active={activeCuisine === "japanese"}
+              onPress={() => loadRecipes("japanese")}
+            />
+          </ScrollView>
+
+          {loading && <ActivityIndicator size="large" style={styles.loader} />}
+        </>
+      }
+      renderItem={({ item }) => (
+        <View style={styles.recipeCard}>
+          <View style={styles.accentStripe} />
+
+          <View style={styles.thumbWrap}>
+            {item.image ? (
+              <Image source={{ uri: item.image }} style={styles.thumbImage} />
+            ) : (
+              <View style={styles.thumbPlaceholder} />
+            )}
+          </View>
+
+          <View style={styles.cardTextWrap}>
+            <Text style={styles.cardTitle} numberOfLines={2}>
+              {item.title || "Title"}
+            </Text>
+
+            <Text style={styles.cardSubtitle} numberOfLines={1}>
+              Subtitle
+            </Text>
+
+            <View style={styles.metaBlock}>
+              <Text style={styles.metaText}>Cook time:</Text>
+              <Text style={styles.metaText}>Calories:</Text>
+            </View>
+          </View>
+        </View>
+      )}
+    />
+  </SafeAreaView>
+);
+}
+
+function CuisineChip({ label, active, onPress}) {
+  return (
+    <TouchableOpacity
+    activeOpacity={0.7}
+    onPress={onPress}
+    style={[styles.chip, active && styles.chipActive]}
+    >
+      <Text style={[styles.chipText, active && styles.chipTextActive]}>
+      {label} 
+      </Text>
+    </TouchableOpacity>
   );
 }
 
@@ -106,68 +173,170 @@ if (!fontsLoaded) return null;
 //   );
 // }
 
+const GREEN = "#1F7A3A";
+const INK = "#111827";
 const styles = StyleSheet.create({
+  safe:{
+    flex:1,
+    backgroundColor: "#FFFFFF",
+  },
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: "#E5E8B6",
+    paddingHorizontal: 18,
+    backgroundColor: "#FFFFFF",
   },
-  header: {
-    fontSize: 26,
-    fontFamily: "PlayfairDisplay_700Bold",
-    // fontWeight: "bold",
-    marginBottom: 16,
-    color: "#004002",
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    // paddingTop: 8,
+    // paddingBottom: 10,
+    padding: 10,
   },
-  body: {
-    fontSize: 16,
-    fontFamily: "Inter_400Regular",
-    marginTop: 8,
-    marginBottom: 12,
-    marginLeft: 8,
-    textAlign: "Left",
+  iconCircle: {
+    width: 52,
+    height:52,
+    borderRadius: 26,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  button: {
-  backgroundColor: "#004002",
-  paddingVertical: 10,
-  paddingHorizontal: 16,
-  borderRadius: 8,
-},
-  buttonText: {
+  logoImage: {
+    width: 60,
+    height: 60,
+  },
+  locationText: {
     fontFamily: "Inter_600SemiBold",
-    color: "white",
-    fontFamily: "Inter_600SemiBold",
+    color: INK,
     fontSize: 14,
   },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 32,
-    textColor: "#004002",
-  //   // fontFamily: "Inter_600SemiBold",
+
+  menuIcon: { 
+    gap: 4 
   },
+  menuLine: {
+    width: 18,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: INK,
+  },
+
+  /* ===== Title ===== */
+  header: {
+    fontSize: 28,
+    fontFamily: "PlayfairDisplay_700Bold",
+    color: INK,
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 14,
+  },
+
+  /* ===== Chips ===== */
+  chipRow: {
+    padding: 6,
+    gap: 14,
+    alignItems: "center",
+  },
+  chip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 0,
+    borderWidth: 2,
+    borderColor: GREEN,
+    backgroundColor: "#FFFFFF",
+    alignSelf: "flex-start",
+    alignItems: "center",
+    minHeight: 42,
+  },
+  chipActive: {
+    backgroundColor: "#EAF6EE",
+  },
+  chipText: {
+    fontFamily: "Inter_600SemiBold",
+    color: INK,
+    fontSize: 14,
+  },
+  chipTextActive: {
+    color: "#0B3D1A",
+  },
+
+  /* ===== Loader ===== */
   loader: {
-    marginTop: 20,
+    marginTop: 16,
   },
+
+  /* ===== List ===== */
   listContainer: {
-    paddingBottom: 40,
+    padding: 14,
+    gap: 14,
   },
-  card: {
-    marginBottom: 20,
-    backgroundColor: "white",
-    borderRadius: 10,
+
+  /* ===== Recipe Card ===== */
+  recipeCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    position: "relative",
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.08,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 8 },
+      },
+      android: { elevation: 2 },
+    }),
   },
-  image: {
-    width: "100%",
-    height: 160,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
+  accentStripe: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    backgroundColor: GREEN,
   },
-  // title: {
-  //   fontSize: 18,
-  //   marginTop: 8,
-  //   marginBottom: 12,
-  //   marginLeft: 8,
-  //   textAlign: "Left",
-  // },
+
+  thumbWrap: {
+    marginLeft: 6, // creates breathing room from stripe
+    marginRight: 14,
+  },
+  thumbPlaceholder: {
+    width: 86,
+    height: 86,
+    borderRadius: 14,
+    backgroundColor: "#F3F4F6",
+    borderWidth: 2,
+    borderColor: GREEN,
+  },
+  thumbImage: {
+    width: 86,
+    height: 86,
+    borderRadius: 14,
+    backgroundColor: "#F3F4F6",
+  },
+
+  cardTextWrap: { flex: 1 },
+  cardTitle: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 16,
+    color: INK,
+    marginBottom: 2,
+  },
+  cardSubtitle: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 13,
+    color: INK,
+    opacity: 0.8,
+    marginBottom: 10,
+  },
+  metaBlock: { gap: 4 },
+  metaText: {
+    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: INK,
+    opacity: 0.85,
+  },
+
 });
