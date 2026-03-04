@@ -1,15 +1,3 @@
-// src/utils/grocery.js
-
-/**
- * Spoonacular extendedIngredients items typically include:
- * - id (ingredient id)
- * - name / originalName
- * - amount + unit (depends on servings)
- * - measures.us / measures.metric (often more stable for display)
- *
- * We’ll merge by ingredient.id when possible.
- */
-
 export function mergeIngredients(allIngredients) {
   const map = new Map();
 
