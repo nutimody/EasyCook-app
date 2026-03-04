@@ -9,7 +9,8 @@ async function request(path, params = {}) {
 
   // Add passed params
   Object.entries(params).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
+    if (v !== undefined && v !== null && v !== "") 
+      url.searchParams.set(k, String(v));
   });
 
   const res = await fetch(url.toString());
@@ -32,4 +33,10 @@ export function fetchRecipesByCuisine(cuisine, number = 10) {
 // 2) Ingredients for a recipe
 export function fetchIngredientsForRecipe(recipeId) {
   return request(`/recipes/${recipeId}/ingredientWidget.json`);
+}
+
+export function fetchRecipeDetails(recipeId) {
+  return request(`/recipes/${recipeId}/information`, {
+    includeNutrition: false,
+  });
 }
