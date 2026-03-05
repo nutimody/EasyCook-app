@@ -8,6 +8,7 @@ import logo from "../../assets/easycook-logo.png";
 
 // console.log("fetchRecipesByCuisine is:", fetchRecipesByCuisine);
 
+
 export default function HomeScreen({ navigation }) {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState (false);
@@ -55,7 +56,11 @@ if (!fontsLoaded) return null;
 
             <Text style={styles.locationText}>Santa Clara, CA</Text>
 
-            <TouchableOpacity activeOpacity={0.7} style={styles.iconCircle}>
+            <TouchableOpacity 
+            activeOpacity={0.7} 
+            style={styles.iconCircle}
+            onPress={() => navigation.openDrawer()}
+            >
               <View style={styles.menuIcon}>
                 <View style={styles.menuLine} />
                 <View style={styles.menuLine} />
