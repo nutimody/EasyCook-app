@@ -39,7 +39,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Drawer.Navigator screenOptions={{ headerShown: false }}>
-        <Drawer.Screen name="Home" component={HomeStack} />
+        <Drawer.Screen name="HomeRoot" component={HomeStack} options={{title: "Home" }} />
         <Drawer.Screen name="Preferences" component={PreferencesScreen} />
         <Drawer.Screen name="Favorites" component={FavoritesScreen} />
         <Drawer.Screen name="My Cart" component={CartScreen} />
