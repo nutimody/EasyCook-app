@@ -1,9 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useLayoutEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { fetchRecipeDetails } from "../api/spoonacular";
 
-export default function RecipeDetailScreen({ route }) {
+export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
   const { recipeId } = route.params ?? {};
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,6 +39,28 @@ export default function RecipeDetailScreen({ route }) {
     loadRecipe();
   }, [recipeId]);
 
+    useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => {
+            if (!recipe) return;
+
+            if (onAddRecipe) {
+              onAddRecipe(recipe);
+              Alert.alert("Added", "Recipe added to My Recipes.");
+            } else {
+              Alert.alert("Missing setup", "onAddRecipe is not connected yet.");
+            }
+          }}
+          style={styles.headerButton}
+        >
+          <Text style={styles.headerButtonText}>Add</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, recipe, onAddRecipe]);
+
   return (
     <SafeAreaView style={styles.safe}>
       {loading ? (
@@ -40,49 +71,48 @@ export default function RecipeDetailScreen({ route }) {
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.content}>
-        {recipe?.image ? (
-         <Image source={{ uri: recipe.image }} style={styles.image} />
-        ) : null}
+          {recipe?.image ? (
+            <Image source={{ uri: recipe.image }} style={styles.image} />
+          ) : null}
 
-         <Text style={styles.title}>{recipe?.title || "Recipe details"}</Text>
+          <Text style={styles.title}>{recipe?.title || "Recipe details"}</Text>
 
-         <Text style={styles.message}>
-             Ready in {recipe?.readyInMinutes ?? "?"} minutes
-         </Text>
+          <Text style={styles.message}>
+            Ready in {recipe?.readyInMinutes ?? "?"} minutes
+          </Text>
 
-        <Text style={styles.message}>
-          Servings: {recipe?.servings ?? "?"}
-        </Text>
+          <Text style={styles.message}>
+            Servings: {recipe?.servings ?? "?"}
+          </Text>
 
-    {/* Ingredients */}
-    <Text style={styles.sectionTitle}>Ingredients</Text>
+          <Text style={styles.sectionTitle}>Ingredients</Text>
 
-    {Array.isArray(recipe?.extendedIngredients) && recipe.extendedIngredients.length > 0 ? (
-      recipe.extendedIngredients.map((ing, idx) => (
-        <Text key={ing.id ?? `${ing.original}-${idx}`} style={styles.bullet}>
-          • {ing.original}
-        </Text>
-      ))
-    ) : (
-      <Text style={styles.message}>No ingredients found.</Text>
-    )}
+          {Array.isArray(recipe?.extendedIngredients) &&
+          recipe.extendedIngredients.length > 0 ? (
+            recipe.extendedIngredients.map((ing, idx) => (
+              <Text key={ing.id ?? `${ing.original}-${idx}`} style={styles.bullet}>
+                • {ing.original}
+              </Text>
+            ))
+          ) : (
+            <Text style={styles.message}>No ingredients found.</Text>
+          )}
 
-  {/* Cooking Steps */}
-  <Text style={styles.sectionTitle}>Cooking Steps</Text>
+          <Text style={styles.sectionTitle}>Cooking Steps</Text>
 
-  {Array.isArray(recipe?.analyzedInstructions) &&
-  recipe.analyzedInstructions.length > 0 &&
-  Array.isArray(recipe.analyzedInstructions[0]?.steps) &&
-  recipe.analyzedInstructions[0].steps.length > 0 ? (
-    recipe.analyzedInstructions[0].steps.map((stepObj, idx) => (
-      <Text key={stepObj.number ?? idx} style={styles.step}>
-        {stepObj.number ?? idx + 1}. {stepObj.step}
-      </Text>
-    ))
-  ) : (
-    <Text style={styles.message}>No steps found.</Text>
-  )}
-</ScrollView>
+          {Array.isArray(recipe?.analyzedInstructions) &&
+          recipe.analyzedInstructions.length > 0 &&
+          Array.isArray(recipe.analyzedInstructions[0]?.steps) &&
+          recipe.analyzedInstructions[0].steps.length > 0 ? (
+            recipe.analyzedInstructions[0].steps.map((stepObj, idx) => (
+              <Text key={stepObj.number ?? idx} style={styles.step}>
+                {stepObj.number ?? idx + 1}. {stepObj.step}
+              </Text>
+            ))
+          ) : (
+            <Text style={styles.message}>No steps found.</Text>
+          )}
+        </ScrollView>
       )}
     </SafeAreaView>
   );
@@ -118,20 +148,32 @@ const styles = StyleSheet.create({
     color: "#374151",
   },
   sectionTitle: {
-  fontSize: 18,
-  fontWeight: "700",
-  color: "#111827",
-  marginTop: 8,
-},
-bullet: {
-  fontSize: 16,
-  color: "#374151",
-  lineHeight: 22,
-},
-step: {
-  fontSize: 16,
-  color: "#374151",
-  lineHeight: 24,
-  marginBottom: 8,
-},
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+    marginTop: 8,
+  },
+  bullet: {
+    fontSize: 16,
+    color: "#374151",
+    lineHeight: 22,
+  },
+  step: {
+    fontSize: 16,
+    color: "#374151",
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  headerButton: {
+  backgroundColor: "#111827",
+  paddingHorizontal: 12,
+  paddingVertical: 6,
+  borderRadius: 8,
+  marginRight: 8,
+  },
+  headerButtonText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
 });

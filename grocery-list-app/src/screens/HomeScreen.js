@@ -22,12 +22,12 @@ import logo from "../../assets/easycook-logo.png";
 
 
 const CUISINES = [
-  { key: "indian", label: "Indian", emoji: "🍛" },
-  { key: "italian", label: "Italian", emoji: "🍝" },
-  { key: "mexican", label: "Mexican", emoji: "🌮" },
-  { key: "thai", label: "Thai", emoji: "🍜" },
-  { key: "chinese", label: "Chinese", emoji: "🥟" },
-  { key: "japanese", label: "Japanese", emoji: "🍣" },
+  { key: "indian", label: "Indian", emoji: "🇮🇳" },
+  { key: "italian", label: "Italian", emoji: "🇮🇹" },
+  { key: "mexican", label: "Mexican", emoji: "🇲🇽" },
+  { key: "thai", label: "Thai", emoji: "🇹🇭" },
+  { key: "chinese", label: "Chinese", emoji: "🇨🇳" },
+  { key: "japanese", label: "Japanese", emoji: "🇯🇵" },
 ];
 
 export default function HomeScreen({ navigation }) {
@@ -316,7 +316,7 @@ const styles = StyleSheet.create({
   },
   tile: {
     flex: 1,
-    borderRadius: 18,
+    borderRadius: 5,
     borderWidth: 2,
     borderColor: GREEN,
     padding: 18,
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: "#000",
         shadowOpacity: 0.06,
-        shadowRadius: 12,
+        shadowRadius: 5,
         shadowOffset: { width: 0, height: 6 },
       },
       android: { elevation: 2 },
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
   /* ===== Recipe Card ===== */
   recipeCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    borderRadius: 5,
     flexDirection: "row",
     alignItems: "center",
     padding: 14,
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: "#000",
         shadowOpacity: 0.08,
-        shadowRadius: 14,
+        shadowRadius: 5,
         shadowOffset: { width: 0, height: 8 },
       },
       android: { elevation: 2 },
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
   thumbPlaceholder: {
     width: 86,
     height: 86,
-    borderRadius: 14,
+    borderRadius: 5,
     backgroundColor: "#F3F4F6",
     borderWidth: 2,
     borderColor: GREEN,
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
   thumbImage: {
     width: 86,
     height: 86,
-    borderRadius: 14,
+    borderRadius: 5,
     backgroundColor: "#F3F4F6",
   },
   cardTextWrap: { flex: 1 },
