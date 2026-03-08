@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { fetchRecipeDetails } from "../api/spoonacular";
+import AppHeader from "../components/AppHeader";
 
 export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
   const { recipeId } = route.params ?? {};
@@ -39,30 +40,21 @@ export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
     loadRecipe();
   }, [recipeId]);
 
-    useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={() => {
-            if (!recipe) return;
+  const handleAddRecipe = () => {
+    if (!recipe) return;
 
-            if (onAddRecipe) {
-              onAddRecipe(recipe);
-              Alert.alert("Added", "Recipe added to My Recipes.");
-            } else {
-              Alert.alert("Missing setup", "onAddRecipe is not connected yet.");
-            }
-          }}
-          style={styles.headerButton}
-        >
-          <Text style={styles.headerButtonText}>Add</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, recipe, onAddRecipe]);
+    if (onAddRecipe) {
+      onAddRecipe(recipe);
+      Alert.alert("Added", "Recipe added to My Recipes.");
+    } else {
+      Alert.alert("Missing setup", "onAddRecipe is not connected yet.");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe}>
+      <AppHeader navigation={navigation} centerText="Recipe Details" />
+
       {loading ? (
         <ActivityIndicator size="large" style={styles.centered} />
       ) : error ? (
@@ -71,6 +63,10 @@ export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.content}>
+          <TouchableOpacity onPress={handleAddRecipe} style={styles.addButton}>
+            <Text style={styles.addButtonText}>Add</Text>
+          </TouchableOpacity>
+
           {recipe?.image ? (
             <Image source={{ uri: recipe.image }} style={styles.image} />
           ) : null}
@@ -164,14 +160,14 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 8,
   },
-  headerButton: {
-  backgroundColor: "#111827",
-  paddingHorizontal: 12,
-  paddingVertical: 6,
-  borderRadius: 8,
-  marginRight: 8,
+  addButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "#111827",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
-  headerButtonText: {
+  addButtonText: {
     fontSize: 14,
     fontWeight: "700",
     color: "#FFFFFF",

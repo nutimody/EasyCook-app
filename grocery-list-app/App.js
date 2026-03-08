@@ -10,34 +10,38 @@ import MyRecipesScreen from "./src/screens/MyRecipesScreen";
 
 import PreferencesScreen from "./src/screens/PreferencesScreen";
 import FavoritesScreen from "./src/screens/FavoritesScreen";
-import CartScreen from "./src/screens/CartScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
+import GroceryListScreen from "./src/screens/GroceryListScreen";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 
-function HomeStack({ onAddRecipe, onAddFavorite }) {
+function HomeStack({
+  onAddRecipe,
+  onRemoveRecipe,
+  onAddFavorite,
+  onRemoveFavorite,
+  myRecipes,
+  favoriteRecipes,
+}) {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerTintColor: "#111827",
-        headerStyle: {
-          backgroundColor: "#FFFFFF",
-        },
-      }}
-    >
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ headerShown: false }}
-      />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Home" options={{ headerShown: false }}>
+        {(props) => (
+          <HomeScreen
+            {...props}
+            onAddRecipe={onAddRecipe}
+            onRemoveRecipe={onRemoveRecipe}
+            onAddFavorite={onAddFavorite}
+            onRemoveFavorite={onRemoveFavorite}
+            myRecipes={myRecipes}
+            favoriteRecipes={favoriteRecipes}
+          />
+        )}
+      </Stack.Screen>
       <Stack.Screen
         name="RecipeDetail"
-        options={{
-          title: "Recipe",
-          headerShown: true,
-          headerBackTitle: "Back",
-        }}
+        options={{ headerShown: false }}
       >
         {(props) => (
           <RecipeDetailScreen
@@ -71,21 +75,41 @@ export default function App() {
     });
   };
 
+  const handleRemoveRecipe = (recipeId) => {
+    setMyRecipes((prev) => prev.filter((item) => item.id !== recipeId));
+  };
+
+  const handleRemoveFavorite = (recipeId) => {
+    setFavoriteRecipes((prev) => prev.filter((item) => item.id !== recipeId));
+  };
+
   return (
     <NavigationContainer>
-      <Drawer.Navigator screenOptions={{ headerShown: false }}>
+      <Drawer.Navigator
+        screenOptions={{ headerShown: false, drawerPosition: "right" }}
+      >
         <Drawer.Screen name="HomeRoot" options={{ title: "Home" }}>
           {(props) => (
             <HomeStack
               {...props}
               onAddRecipe={handleAddRecipe}
+              onRemoveRecipe={handleRemoveRecipe}
               onAddFavorite={handleAddFavorite}
+              onRemoveFavorite={handleRemoveFavorite}
+              myRecipes={myRecipes}
+              favoriteRecipes={favoriteRecipes}
             />
           )}
         </Drawer.Screen>
 
         <Drawer.Screen name="My Recipes">
-          {(props) => <MyRecipesScreen {...props} myRecipes={myRecipes} />}
+          {(props) => (
+            <MyRecipesScreen
+              {...props}
+              myRecipes={myRecipes}
+              onRemoveRecipe={handleRemoveRecipe}
+            />
+          )}
         </Drawer.Screen>
 
         <Drawer.Screen name="Favorites">
@@ -93,12 +117,18 @@ export default function App() {
             <FavoritesScreen
               {...props}
               favoriteRecipes={favoriteRecipes}
+              onAddFavorite={handleAddFavorite}
+              onRemoveFavorite={handleRemoveFavorite}
             />
           )}
         </Drawer.Screen>
+        <Drawer.Screen
+          name="GroceryList"
+          component={GroceryListScreen}
+          options={{ title: "Grocery List", drawerItemStyle: { display: "none" } }}
+        />
 
         <Drawer.Screen name="Preferences" component={PreferencesScreen} />
-        <Drawer.Screen name="My Cart" component={CartScreen} />
         <Drawer.Screen name="Settings" component={SettingsScreen} />
       </Drawer.Navigator>
     </NavigationContainer>

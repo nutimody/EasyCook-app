@@ -2,44 +2,108 @@ import React from "react";
 import {
   FlatList,
   Image,
+  Pressable,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AppHeader from "../components/AppHeader";
 
-export default function MyRecipesScreen({ navigation, myRecipes }) {
+const GREEN = "#1F7A3A";
+const INK = "#111827";
+
+export default function MyRecipesScreen({
+  navigation,
+  myRecipes = [],
+  onRemoveRecipe,
+}) {
+  const getCaloriesText = (recipe) => {
+    const nutrients = recipe?.nutrition?.nutrients;
+    if (!Array.isArray(nutrients)) return "N/A";
+
+    const caloriesNutrient = nutrients.find(
+      (n) => n?.name?.toLowerCase() === "calories"
+    );
+    if (!caloriesNutrient?.amount) return "N/A";
+
+    return `${Math.round(caloriesNutrient.amount)} kcal`;
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
+      <AppHeader navigation={navigation} centerText="My Recipes" />
       <View style={styles.container}>
-        <Text style={styles.title}>My Recipes</Text>
-
         {myRecipes.length === 0 ? (
           <Text style={styles.message}>No recipes added yet.</Text>
         ) : (
           <FlatList
             data={myRecipes}
             keyExtractor={(item) => String(item.id)}
+            contentContainerStyle={styles.listContainer}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.card}
-                onPress={() =>
-                  navigation.navigate("HomeRoot", {
-                    screen: "RecipeDetail",
-                    params: { recipeId: item.id },
-                  })
-                }
-              >
-                {item.image ? (
-                  <Image source={{ uri: item.image }} style={styles.image} />
-                ) : null}
-                <Text style={styles.cardTitle}>{item.title}</Text>
-              </TouchableOpacity>
+              <View style={styles.recipeCard}>
+                <TouchableOpacity
+                  style={styles.cardMain}
+                  activeOpacity={0.85}
+                  onPress={() =>
+                    navigation.navigate("HomeRoot", {
+                      screen: "RecipeDetail",
+                      params: { recipeId: item.id },
+                    })
+                  }
+                >
+                  <View style={styles.thumbWrap}>
+                    {item.image ? (
+                      <Image source={{ uri: item.image }} style={styles.thumbImage} />
+                    ) : (
+                      <View style={styles.thumbPlaceholder} />
+                    )}
+                  </View>
+
+                  <View style={styles.cardTextWrap}>
+                    <Text style={styles.cardTitle} numberOfLines={2}>
+                      {item.title || "Title"}
+                    </Text>
+
+                    <Text style={styles.cardSubtitle} numberOfLines={1}>
+                      {item.servings ? `${item.servings} servings` : "Recipe"}
+                    </Text>
+
+                    <View style={styles.metaBlock}>
+                      <Text style={styles.metaText}>
+                        Cook time: {item.readyInMinutes ? `${item.readyInMinutes} min` : "N/A"}
+                      </Text>
+                      <Text style={styles.metaText}>
+                        Calories: {getCaloriesText(item)}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+
+                <View style={styles.cardActionColumn}>
+                  <Pressable
+                    style={[styles.actionButton, styles.removeButton]}
+                    onPress={() => onRemoveRecipe?.(item.id)}
+                  >
+                    <Ionicons name="remove" size={20} color="#DC2626" />
+                  </Pressable>
+                </View>
+              </View>
             )}
           />
         )}
       </View>
+
+      <Pressable
+        style={styles.generateButton}
+        onPress={() => navigation.navigate("GroceryList")}
+      >
+        <Text style={styles.generateButtonText}>Generate Grocery List</Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -51,34 +115,117 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 16,
+    paddingHorizontal: 14,
   },
   message: {
     fontSize: 16,
     color: "#374151",
+    marginTop: 20,
+    textAlign: "center",
   },
-  card: {
+  listContainer: {
+    paddingVertical: 14,
+    paddingBottom: 110,
+    gap: 14,
+  },
+  recipeCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    marginBottom: 16,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-  image: {
-    width: "100%",
-    height: 180,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
+    borderRadius: 5,
+    flexDirection: "row",
+    alignItems: "center",
     padding: 14,
+    overflow: "hidden",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.08,
+        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 8 },
+      },
+      android: { elevation: 2 },
+    }),
+  },
+  cardMain: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  thumbWrap: { marginLeft: 6, marginRight: 14 },
+  thumbPlaceholder: {
+    width: 86,
+    height: 86,
+    borderRadius: 5,
+    backgroundColor: "#F3F4F6",
+    borderWidth: 2,
+    borderColor: GREEN,
+  },
+  thumbImage: {
+    width: 86,
+    height: 86,
+    borderRadius: 5,
+    backgroundColor: "#F3F4F6",
+  },
+  cardTextWrap: { flex: 1 },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: INK,
+    marginBottom: 2,
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: INK,
+    opacity: 0.8,
+    marginBottom: 10,
+  },
+  metaBlock: { gap: 4 },
+  metaText: {
+    fontSize: 13,
+    color: INK,
+    opacity: 0.85,
+  },
+  cardActionColumn: {
+    justifyContent: "center",
+    gap: 8,
+    marginLeft: 8,
+  },
+  actionButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+  },
+  removeButton: {
+    borderWidth: 1.5,
+    borderColor: "#DC2626",
+    backgroundColor: "rgba(220,38,38,0.15)",
+  },
+  generateButton: {
+    position: "absolute",
+    bottom: 31,
+    alignSelf: "center",
+    backgroundColor: "#FFCC00",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.18,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 6 },
+      },
+      android: { elevation: 6 },
+    }),
+  },
+  generateButtonText: {
+    color: "#000000",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

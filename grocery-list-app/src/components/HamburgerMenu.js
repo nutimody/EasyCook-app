@@ -4,7 +4,6 @@ import { Modal, View, Text, TouchableOpacity, StyleSheet, Pressable } from "reac
 const MENU_ITEMS = [
   { key: "preferences", label: "Preferences" },
   { key: "favorites", label: "Favorites" },
-  { key: "cart", label: "My Cart" },
   { key: "settings", label: "Settings" },
   { key: "signout", label: "Sign Out", danger: true },
 ];

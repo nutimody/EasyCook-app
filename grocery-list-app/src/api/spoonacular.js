@@ -27,6 +27,7 @@ export function fetchRecipesByCuisine(cuisine, number = 10) {
     cuisine,
     number,
     addRecipeInformation: true, // gives title, image, etc.
+    addRecipeNutrition: true,
   });
 }
 

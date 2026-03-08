@@ -11,6 +11,7 @@ import {
   ScrollView,
   Platform,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import {
   useFonts,
   PlayfairDisplay_400Regular,
@@ -18,7 +19,7 @@ import {
 } from "@expo-google-fonts/playfair-display";
 import { Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
 import { fetchRecipesByCuisine } from "../api/spoonacular";
-import logo from "../../assets/easycook-logo.png";
+import AppHeader from "../components/AppHeader";
 
 
 const CUISINES = [
@@ -30,7 +31,15 @@ const CUISINES = [
   { key: "japanese", label: "Japanese", emoji: "🇯🇵" },
 ];
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen({
+  navigation,
+  onAddRecipe,
+  onRemoveRecipe,
+  onAddFavorite,
+  onRemoveFavorite,
+  myRecipes = [],
+  favoriteRecipes = [],
+}) {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeCuisine, setActiveCuisine] = useState(null);
@@ -73,30 +82,45 @@ export default function HomeScreen({ navigation }) {
     setLoading(false);
   };
 
-  const TopBar = (
-    <View style={styles.topBar}>
-      {/* Left: logo */}
-      <TouchableOpacity activeOpacity={0.7} style={styles.iconCircle}>
-        <Image source={logo} style={styles.logoImage} resizeMode="contain" />
-      </TouchableOpacity>
+  const getCaloriesText = (recipe) => {
+    const nutrients = recipe?.nutrition?.nutrients;
+    if (!Array.isArray(nutrients)) return "N/A";
 
-      {/* Center: location (static for now) */}
-      <Text style={styles.locationText}>Santa Clara, CA</Text>
+    const caloriesNutrient = nutrients.find(
+      (n) => n?.name?.toLowerCase() === "calories"
+    );
+    if (!caloriesNutrient?.amount) return "N/A";
 
-      {/* Right: menu */}
-      <TouchableOpacity
-        activeOpacity={0.7}
-        style={styles.iconCircle}
-        onPress={() => navigation.openDrawer()}
-      >
-        <View style={styles.menuIcon}>
-          <View style={styles.menuLine} />
-          <View style={styles.menuLine} />
-          <View style={styles.menuLine} />
-        </View>
-      </TouchableOpacity>
-    </View>
-  );
+    return `${Math.round(caloriesNutrient.amount)} kcal`;
+  };
+
+  const handleRecipeToggle = (recipe) => {
+    if (!recipe) return;
+    const isInMyRecipes = myRecipes.some((r) => r.id === recipe.id);
+
+    if (isInMyRecipes && onRemoveRecipe) {
+      onRemoveRecipe(recipe.id);
+      return;
+    }
+
+    if (!isInMyRecipes && onAddRecipe) {
+      onAddRecipe(recipe);
+    }
+  };
+
+  const handleFavoriteToggle = (recipe) => {
+    if (!recipe) return;
+    const isInFavorites = favoriteRecipes.some((r) => r.id === recipe.id);
+
+    if (isInFavorites && onRemoveFavorite) {
+      onRemoveFavorite(recipe.id);
+      return;
+    }
+
+    if (!isInFavorites && onAddFavorite) {
+      onAddFavorite(recipe);
+    }
+  };
 
   // =========================
   // MODE 1: CUISINE TILE GRID
@@ -104,6 +128,7 @@ export default function HomeScreen({ navigation }) {
   if (viewMode === "grid") {
     return (
       <SafeAreaView style={styles.safe}>
+        <AppHeader navigation={navigation} centerText="Santa Clara, CA" />
         <FlatList
           key="cuisine-grid"
           data={CUISINES}
@@ -114,7 +139,6 @@ export default function HomeScreen({ navigation }) {
           contentContainerStyle={styles.gridContainer}
           ListHeaderComponent={
             <>
-              {TopBar}
               <Text style={styles.header}>Choose a Cuisine</Text>
               <Text style={styles.subHeader}>
                 Tap a cuisine to see recipes
@@ -141,6 +165,7 @@ export default function HomeScreen({ navigation }) {
   // =========================
   return (
     <SafeAreaView style={styles.safe}>
+      <AppHeader navigation={navigation} centerText="Santa Clara, CA" />
       <FlatList
         key="recipe-list"
         data={recipes}
@@ -149,8 +174,6 @@ export default function HomeScreen({ navigation }) {
         contentContainerStyle={styles.listContainer}
         ListHeaderComponent={
           <>
-            {TopBar}
-
             {/* Back to grid */}
             <View style={styles.backRow}>
               <TouchableOpacity
@@ -192,16 +215,21 @@ export default function HomeScreen({ navigation }) {
             {loading && <ActivityIndicator size="large" style={styles.loader} />}
           </>
         }
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() =>
-              navigation.navigate("RecipeDetail", {
-                recipeId: item.id,
-              })
-            }
-          >
+        renderItem={({ item }) => {
+          const isInMyRecipes = myRecipes.some((r) => r.id === item.id);
+          const isInFavorites = favoriteRecipes.some((r) => r.id === item.id);
+
+          return (
             <View style={styles.recipeCard}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              style={styles.cardMain}
+              onPress={() =>
+                navigation.navigate("RecipeDetail", {
+                  recipeId: item.id,
+                })
+              }
+            >
               <View style={styles.thumbWrap}>
                 {item.image ? (
                   <Image source={{ uri: item.image }} style={styles.thumbImage} />
@@ -216,17 +244,55 @@ export default function HomeScreen({ navigation }) {
                 </Text>
 
                 <Text style={styles.cardSubtitle} numberOfLines={1}>
-                  Subtitle
+                  {item.servings ? `${item.servings} servings` : "Recipe"}
                 </Text>
 
                 <View style={styles.metaBlock}>
-                  <Text style={styles.metaText}>Cook time:</Text>
-                  <Text style={styles.metaText}>Calories:</Text>
+                  <Text style={styles.metaText}>
+                    Cook time: {item.readyInMinutes ? `${item.readyInMinutes} min` : "N/A"}
+                  </Text>
+                  <Text style={styles.metaText}>
+                    Calories: {getCaloriesText(item)}
+                  </Text>
                 </View>
               </View>
+            </TouchableOpacity>
+
+            <View style={styles.cardActionColumn}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={[
+                  styles.addButton,
+                  isInMyRecipes && styles.addButtonSelected,
+                ]}
+                onPress={() => handleRecipeToggle(item)}
+              >
+                <Ionicons
+                  name="add"
+                  size={22}
+                  color={GREEN}
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={[
+                  styles.actionButton,
+                  styles.heartButton,
+                  isInFavorites && styles.heartButtonSelected,
+                ]}
+                onPress={() => handleFavoriteToggle(item)}
+              >
+                <Ionicons
+                  name={isInFavorites ? "heart" : "heart-outline"}
+                  size={16}
+                  color={isInFavorites ? "#FFFFFF" : "#F2508B"}
+                />
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-        )}
+            </View>
+          );
+        }}
         ListEmptyComponent={
           !loading ? (
             <Text style={styles.emptyText}>
@@ -258,34 +324,6 @@ const INK = "#111827";
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#FFFFFF" },
-
-  /* ===== Top Bar ===== */
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 10,
-  },
-  iconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoImage: { width: 60, height: 60 },
-  locationText: {
-    fontFamily: "Inter_600SemiBold",
-    color: INK,
-    fontSize: 14,
-  },
-  menuIcon: { gap: 4 },
-  menuLine: {
-    width: 18,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: INK,
-  },
 
   /* ===== Title ===== */
   header: {
@@ -358,7 +396,7 @@ const styles = StyleSheet.create({
     borderColor: GREEN,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 999,
+    borderRadius: 5,
     backgroundColor: "#FFFFFF",
   },
   backPillText: {
@@ -382,7 +420,7 @@ const styles = StyleSheet.create({
   tag: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 0,
+    borderRadius: 5,
     borderWidth: 2,
     borderColor: GREEN,
     backgroundColor: "#FFFFFF",
@@ -426,6 +464,11 @@ const styles = StyleSheet.create({
       android: { elevation: 2 },
     }),
   },
+  cardMain: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
   thumbWrap: { marginLeft: 6, marginRight: 14 },
   thumbPlaceholder: {
     width: 86,
@@ -461,5 +504,39 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: INK,
     opacity: 0.85,
+  },
+  cardActionColumn: {
+    justifyContent: "center",
+    gap: 8,
+    marginLeft: 8,
+  },
+  actionButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+  },
+  addButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: GREEN,
+  },
+  addButtonSelected: {
+    backgroundColor: "rgba(31,122,58,0.3)",
+  },
+  heartButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: "#F2508B",
+  },
+  heartButtonSelected: {
+    backgroundColor: "rgba(242,80,139,0.3)",
   },
 });
