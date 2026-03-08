@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   View,
@@ -20,6 +20,7 @@ import {
 import { Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
 import { fetchRecipesByCuisine } from "../api/spoonacular";
 import AppHeader from "../components/AppHeader";
+import * as Location from "expo-location";
 
 
 const CUISINES = [
@@ -43,6 +44,7 @@ export default function HomeScreen({
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeCuisine, setActiveCuisine] = useState(null);
+  const [headerLocation, setHeaderLocation] = useState("Santa Clara, CA");
 
   // NEW: whether we’re showing the initial tile grid or the recipe list
   const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
@@ -54,9 +56,45 @@ export default function HomeScreen({
     Inter_600SemiBold,
   });
 
+  useEffect(() => {
+    const loadCurrentLocation = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          return;
+        }
+
+        const currentPosition = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        const [place] = await Location.reverseGeocodeAsync({
+          latitude: currentPosition.coords.latitude,
+          longitude: currentPosition.coords.longitude,
+        });
+
+        if (!place) {
+          return;
+        }
+
+        const city = place.city || place.subregion || place.region;
+        const region = place.region || place.country;
+
+        if (city && region) {
+          setHeaderLocation(`${city}, ${region}`);
+        } else if (city) {
+          setHeaderLocation(city);
+        }
+      } catch (error) {
+        console.log("Error getting location:", error?.message || error);
+      }
+    };
+
+    loadCurrentLocation();
+  }, []);
+
   if (!fontsLoaded) return null;
 
-  
 
   const loadRecipes = async (cuisine) => {
     try {
@@ -128,7 +166,7 @@ export default function HomeScreen({
   if (viewMode === "grid") {
     return (
       <SafeAreaView style={styles.safe}>
-        <AppHeader navigation={navigation} centerText="Santa Clara, CA" />
+        <AppHeader navigation={navigation} centerText={headerLocation} />
         <FlatList
           key="cuisine-grid"
           data={CUISINES}
@@ -165,7 +203,7 @@ export default function HomeScreen({
   // =========================
   return (
     <SafeAreaView style={styles.safe}>
-      <AppHeader navigation={navigation} centerText="Santa Clara, CA" />
+      <AppHeader navigation={navigation} centerText={headerLocation} />
       <FlatList
         key="recipe-list"
         data={recipes}
@@ -539,4 +577,5 @@ const styles = StyleSheet.create({
   heartButtonSelected: {
     backgroundColor: "rgba(242,80,139,0.3)",
   },
+  
 });

@@ -125,7 +125,7 @@ export default function App() {
         <Drawer.Screen
           name="GroceryList"
           component={GroceryListScreen}
-          options={{ title: "Grocery List", drawerItemStyle: { display: "none" } }}
+          options={{ title: "Grocery List" }}
         />
 
         <Drawer.Screen name="Preferences" component={PreferencesScreen} />

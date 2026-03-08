@@ -1,12 +1,15 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Pressable,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AppHeader from "../components/AppHeader";
 
 /*
   EXPECTED INPUT:
@@ -74,13 +77,13 @@ const BOTTLE_RULES = {
 };
 
 const PACKAGE_RULES = {
-  rice: { label: "bag of rice", sizes: [500, 1000, 2000], unit: "g" },
-  pasta: { label: "pack of pasta", sizes: [500, 1000], unit: "g" },
-  flour: { label: "bag of flour", sizes: [500, 1000, 2000], unit: "g" },
-  sugar: { label: "bag of sugar", sizes: [500, 1000, 2000], unit: "g" },
-  "brown sugar": { label: "bag of brown sugar", sizes: [500, 1000], unit: "g" },
-  lentils: { label: "bag of lentils", sizes: [500, 1000], unit: "g" },
-  chickpeas: { label: "bag of chickpeas", sizes: [500, 1000], unit: "g" },
+  rice: { label: "bag of rice", sizes: [16, 32, 64], unit: "oz" },
+  pasta: { label: "pack of pasta", sizes: [16, 32], unit: "oz" },
+  flour: { label: "bag of flour", sizes: [16, 32, 64], unit: "oz" },
+  sugar: { label: "bag of sugar", sizes: [16, 32, 64], unit: "oz" },
+  "brown sugar": { label: "bag of brown sugar", sizes: [16, 32], unit: "oz" },
+  lentils: { label: "bag of lentils", sizes: [16, 32], unit: "oz" },
+  chickpeas: { label: "bag of chickpeas", sizes: [16, 32], unit: "oz" },
 };
 
 function normalizeName(name = "") {
@@ -92,38 +95,102 @@ function normalizeUnit(amount = 0, unit = "") {
   const u = unit.toLowerCase().trim();
 
   if (u === "tsp" || u === "teaspoon" || u === "teaspoons") {
-    return { amount: amount / 3, unit: "tbsp" };
+    return { amount, unit: "tsp" };
   }
 
-  if (u === "cup" || u === "cups") {
-    return { amount: amount * 240, unit: "ml" };
-  }
-
-  if (u === "kg" || u === "kilogram" || u === "kilograms") {
-    return { amount: amount * 1000, unit: "g" };
-  }
-
-  if (u === "lb" || u === "lbs" || u === "pound" || u === "pounds") {
-    return { amount: amount * 454, unit: "g" };
-  }
-
-  if (u === "oz" || u === "ounce" || u === "ounces") {
-    return { amount: amount * 28.35, unit: "g" };
-  }
-
-  if (u === "tablespoon" || u === "tablespoons") {
+  if (u === "tablespoon" || u === "tablespoons" || u === "tbsp") {
     return { amount, unit: "tbsp" };
   }
 
-  if (u === "gram" || u === "grams") {
-    return { amount, unit: "g" };
+  if (u === "cup" || u === "cups") {
+    return { amount, unit: "cup" };
   }
 
-  if (u === "milliliter" || u === "milliliters") {
-    return { amount, unit: "ml" };
+  if (u === "ml" || u === "milliliter" || u === "milliliters") {
+    return { amount: amount / 4.92892, unit: "tsp" };
+  }
+
+  if (u === "l" || u === "liter" || u === "liters") {
+    return { amount: amount * 202.884, unit: "tsp" };
+  }
+
+  if (u === "kg" || u === "kilogram" || u === "kilograms") {
+    return { amount: amount * 35.274, unit: "oz" };
+  }
+
+  if (u === "lb" || u === "lbs" || u === "pound" || u === "pounds") {
+    return { amount: amount * 16, unit: "oz" };
+  }
+
+  if (u === "oz" || u === "ounce" || u === "ounces") {
+    return { amount, unit: "oz" };
+  }
+
+  if (u === "gram" || u === "grams") {
+    return { amount: amount / 28.35, unit: "oz" };
   }
 
   return { amount, unit: u };
+}
+
+function roundToQuarter(value) {
+  return Math.round(value * 4) / 4;
+}
+
+function formatAmountValue(value) {
+  if (Number.isInteger(value)) {
+    return String(value);
+  }
+  return String(value);
+}
+
+function formatImperialAmount(amount, unit) {
+  if (!unit || unit === "x") {
+    return formatAmountValue(Math.max(1, Math.ceil(amount)));
+  }
+
+  if (unit === "oz") {
+    if (amount >= 16) {
+      const pounds = roundToQuarter(amount / 16);
+      return `${formatAmountValue(pounds)} lb`;
+    }
+    const ounces = Math.max(1, roundToQuarter(amount));
+    return `${formatAmountValue(ounces)} oz`;
+  }
+
+  if (unit === "cup") {
+    if (amount < 1) {
+      const tbsp = Math.max(1, roundToQuarter(amount * 16));
+      return `${formatAmountValue(tbsp)} tbsp`;
+    }
+    const cups = roundToQuarter(amount);
+    return `${formatAmountValue(cups)} cup`;
+  }
+
+  if (unit === "tbsp") {
+    if (amount >= 16) {
+      const cups = roundToQuarter(amount / 16);
+      return `${formatAmountValue(cups)} cup`;
+    }
+    if (amount < 1) {
+      const tsp = Math.max(1, Math.round(amount * 3));
+      return `${formatAmountValue(tsp)} tsp`;
+    }
+    const tbsp = roundToQuarter(amount);
+    return `${formatAmountValue(tbsp)} tbsp`;
+  }
+
+  if (unit === "tsp") {
+    if (amount >= 3) {
+      const tbsp = roundToQuarter(amount / 3);
+      return `${formatAmountValue(tbsp)} tbsp`;
+    }
+    const tsp = Math.max(1, roundToQuarter(amount));
+    return `${formatAmountValue(tsp)} tsp`;
+  }
+
+  const value = Math.max(1, roundToQuarter(amount));
+  return `${formatAmountValue(value)} ${unit}`;
 }
 
 function guessCategory(name) {
@@ -181,23 +248,28 @@ function combineIngredients(allIngredients) {
 function toPurchaseItem(item) {
   const { name, amount, unit } = item;
   const category = guessCategory(name);
+  const formatLabel = (itemName, amountText) => `${itemName} (${amountText})`;
 
   if (PRODUCE_COUNT_RULES[name]) {
     const qty = Math.max(1, Math.ceil(amount));
+    const label = formatLabel(name, `${qty}`);
+
     return {
-      id: `${name}-produce`,
+      id: `${name}-produce-${qty}`,
       name,
-      label: `${qty} ${PRODUCE_COUNT_RULES[name].label}`,
+      label,
       checked: false,
       category,
     };
   }
 
   if (BUNCH_RULES[name]) {
+    const label = formatLabel(name, "1 bunch");
+
     return {
-      id: `${name}-bunch`,
+      id: `${name}-bunch-1`,
       name,
-      label: `1 ${BUNCH_RULES[name].label}`,
+      label,
       checked: false,
       category,
     };
@@ -206,20 +278,24 @@ function toPurchaseItem(item) {
   if (BULB_RULES[name]) {
     const clovesPerBulb = BULB_RULES[name].clovesPerBulb || 8;
     const bulbs = Math.max(1, Math.ceil(amount / clovesPerBulb));
+    const label = formatLabel(name, `${bulbs} ${bulbs === 1 ? "bulb" : "bulbs"}`);
+
     return {
-      id: `${name}-bulb`,
+      id: `${name}-bulb-${bulbs}`,
       name,
-      label: `${bulbs} ${bulbs === 1 ? "garlic bulb" : "garlic bulbs"}`,
+      label,
       checked: false,
       category,
     };
   }
 
   if (BOTTLE_RULES[name]) {
+    const label = formatLabel(name, "1 bottle");
+
     return {
-      id: `${name}-bottle`,
+      id: `${name}-bottle-1`,
       name,
-      label: `1 ${BOTTLE_RULES[name].label}`,
+      label,
       checked: false,
       category,
     };
@@ -229,39 +305,36 @@ function toPurchaseItem(item) {
     const rule = PACKAGE_RULES[name];
     const totalAmount = unit === rule.unit ? amount : amount;
     const { packages, size } = roundUpToPackage(totalAmount, rule.sizes);
+    const packageSizeText = formatImperialAmount(size, rule.unit);
+
+    const label =
+      packages === 1
+        ? formatLabel(name, `1 x ${packageSizeText}`)
+        : formatLabel(name, `${packages} x ${packageSizeText}`);
 
     return {
-      id: `${name}-package`,
+      id: `${name}-package-${packages}-${size}${rule.unit}`,
       name,
-      label:
-        packages === 1
-          ? `1 ${rule.label} (${size}${rule.unit})`
-          : `${packages} ${rule.label}s (${size}${rule.unit} each)`,
+      label,
       checked: false,
       category,
     };
   }
 
-  // fallback for items without a custom retail rule
   let fallbackAmount = amount;
   let fallbackUnit = unit;
 
   if (!fallbackUnit) {
     fallbackAmount = Math.max(1, Math.ceil(amount));
     fallbackUnit = "x";
-  } else if (fallbackUnit === "tbsp" || fallbackUnit === "ml" || fallbackUnit === "g") {
-    fallbackAmount = Math.ceil(amount);
-  } else {
-    fallbackAmount = Math.ceil(amount);
   }
 
+  const label = formatLabel(name, formatImperialAmount(fallbackAmount, fallbackUnit));
+
   return {
-    id: `${name}-${unit || "unit"}`,
+    id: `${name}-${fallbackUnit}-${fallbackAmount}`,
     name,
-    label:
-      fallbackUnit === "x"
-        ? `${fallbackAmount} ${name}`
-        : `${fallbackAmount} ${fallbackUnit} ${name}`,
+    label,
     checked: false,
     category,
   };
@@ -276,39 +349,96 @@ function buildGroceryList(selectedRecipes = []) {
   return combined.map(toPurchaseItem);
 }
 
-export default function GroceryListScreen({ route }) {
+const CHECK_MOVE_DELAY_MS = 500;
+
+export default function GroceryListScreen({ route, navigation }) {
   const selectedRecipes = route?.params?.selectedRecipes || [];
 
   const initialList = useMemo(() => buildGroceryList(selectedRecipes), [selectedRecipes]);
   const [groceryList, setGroceryList] = useState(initialList);
+  const [pendingCheckIds, setPendingCheckIds] = useState(() => new Set());
+  const pendingTimeoutsRef = useRef(new Map());
+
+  useEffect(() => {
+    return () => {
+      pendingTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
+      pendingTimeoutsRef.current.clear();
+    };
+  }, []);
 
   function toggleChecked(id) {
-    setGroceryList((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, checked: !item.checked } : item
-      )
-    );
+    const tappedItem = groceryList.find((item) => item.id === id);
+    if (!tappedItem) {
+      return;
+    }
+
+    const existingTimeout = pendingTimeoutsRef.current.get(id);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+      pendingTimeoutsRef.current.delete(id);
+      setPendingCheckIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      return;
+    }
+
+    if (tappedItem.checked) {
+      setGroceryList((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, checked: false } : item
+        )
+      );
+      return;
+    }
+
+    setPendingCheckIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+
+    const timeoutId = setTimeout(() => {
+      pendingTimeoutsRef.current.delete(id);
+
+      setPendingCheckIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+
+      setGroceryList((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, checked: true } : item
+        )
+      );
+    }, CHECK_MOVE_DELAY_MS);
+
+    pendingTimeoutsRef.current.set(id, timeoutId);
   }
 
   const uncheckedItems = groceryList.filter((item) => !item.checked);
   const checkedItems = groceryList.filter((item) => item.checked);
 
   function renderItem({ item }) {
+    const isPendingCheck = pendingCheckIds.has(item.id);
+    const isVisuallyChecked = item.checked || isPendingCheck;
+
     return (
       <TouchableOpacity
         style={styles.itemRow}
         onPress={() => toggleChecked(item.id)}
         activeOpacity={0.7}
       >
-        <View style={[styles.checkbox, item.checked && styles.checkboxChecked]}>
-          <Text style={styles.checkboxText}>{item.checked ? "✓" : ""}</Text>
+        <View style={[styles.checkbox, isVisuallyChecked && styles.checkboxChecked]}>
+          <Text style={styles.checkboxText}>{isVisuallyChecked ? "✓" : ""}</Text>
         </View>
 
         <View style={styles.itemTextWrap}>
-          <Text style={[styles.itemText, item.checked && styles.itemTextChecked]}>
+          <Text style={[styles.itemText, isVisuallyChecked && styles.itemTextChecked]}>
             {item.label}
           </Text>
-          <Text style={styles.categoryText}>{item.category}</Text>
         </View>
       </TouchableOpacity>
     );
@@ -316,6 +446,7 @@ export default function GroceryListScreen({ route }) {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <AppHeader navigation={navigation} centerText="Grocery List" />
       <View style={styles.container}>
         <Text style={styles.title}>Grocery List</Text>
         <Text style={styles.subtitle}>
@@ -330,19 +461,30 @@ export default function GroceryListScreen({ route }) {
             </Text>
           </View>
         ) : (
-          <FlatList
-            data={[...uncheckedItems, ...checkedItems]}
-            keyExtractor={(item) => item.id}
-            renderItem={renderItem}
-            contentContainerStyle={styles.listContent}
-            ListHeaderComponent={
-              <View style={styles.summaryCard}>
-                <Text style={styles.summaryText}>
-                  {uncheckedItems.length} remaining • {checkedItems.length} checked
-                </Text>
+          <>
+            <View style={styles.scoreboard}>
+              <View style={[styles.scoreTile, styles.scoreTileLeft]}>
+                <Text style={styles.scoreCount}>{uncheckedItems.length}</Text>
+                <Text style={styles.scoreLabel}>to buy</Text>
               </View>
-            }
-          />
+              <View style={styles.scoreTile}>
+                <Text style={styles.scoreCount}>{checkedItems.length}</Text>
+                <Text style={styles.scoreLabel}>in pantry</Text>
+              </View>
+            </View>
+
+            <Pressable style={styles.nearbyStoresButton} onPress={() => {}}>
+              <Text style={styles.nearbyStoresButtonText}>Nearby Stores</Text>
+            </Pressable>
+
+            <FlatList
+              data={[...uncheckedItems, ...checkedItems]}
+              keyExtractor={(item, index) => `${item.id}-${index}`}
+              renderItem={renderItem}
+              contentContainerStyle={styles.listContent}
+              style={styles.list}
+            />
+          </>
         )}
       </View>
     </SafeAreaView>
@@ -370,21 +512,68 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     marginBottom: 16,
   },
-  summaryCard: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+  scoreboard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 16,
   },
-  summaryText: {
-    fontSize: 14,
-    color: "#374151",
-    fontWeight: "600",
+  scoreTile: {
+    flex: 1,
+    minHeight: 96,
+    backgroundColor: "#FFFFFF",
+    opacity: 0.8,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: "#111827",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+  },
+  scoreTileLeft: {
+    marginRight: 10,
+  },
+  scoreCount: {
+    fontSize: 34,
+    lineHeight: 36,
+    color: "#000000",
+    fontWeight: "800",
+  },
+  scoreLabel: {
+    marginTop: 4,
+    fontSize: 16,
+    color: "#000000",
+    fontWeight: "700",
+    textTransform: "lowercase",
+  },
+  nearbyStoresButton: {
+    backgroundColor: "#FFCC00",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.18,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 6 },
+      },
+      android: { elevation: 6 },
+    }),
+  },
+  nearbyStoresButtonText: {
+    color: "#000000",
+    fontSize: 16,
+    fontWeight: "700",
   },
   listContent: {
     paddingBottom: 30,
+  },
+  list: {
+    flex: 1,
   },
   itemRow: {
     flexDirection: "row",
@@ -424,11 +613,6 @@ const styles = StyleSheet.create({
   itemTextChecked: {
     textDecorationLine: "line-through",
     color: "#9CA3AF",
-  },
-  categoryText: {
-    marginTop: 4,
-    fontSize: 12,
-    color: "#6B7280",
   },
   emptyWrap: {
     marginTop: 40,
