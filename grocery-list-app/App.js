@@ -12,6 +12,7 @@ import PreferencesScreen from "./src/screens/PreferencesScreen";
 import FavoritesScreen from "./src/screens/FavoritesScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
 import GroceryListScreen from "./src/screens/GroceryListScreen";
+import NearbyStoresScreen from "./src/screens/NearbyStoresScreen";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -122,10 +123,20 @@ export default function App() {
             />
           )}
         </Drawer.Screen>
+
+        <Drawer.Screen name="GroceryList" options={{ title: "Grocery List" }}>
+         {(props) => (
+           <GroceryListScreen
+            {...props}
+             myRecipes={myRecipes}
+           />
+          )}
+        </Drawer.Screen>
+
         <Drawer.Screen
-          name="GroceryList"
-          component={GroceryListScreen}
-          options={{ title: "Grocery List" }}
+          name="NearbyStores"
+          component={NearbyStoresScreen}
+          options={{ title: "Nearby Stores" }}
         />
 
         <Drawer.Screen name="Preferences" component={PreferencesScreen} />

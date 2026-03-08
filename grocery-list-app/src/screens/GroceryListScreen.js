@@ -7,9 +7,12 @@ import {
   TouchableOpacity,
   Pressable,
   Platform,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppHeader from "../components/AppHeader";
+import * as Location from "expo-location";
+import { fetchNearbyGroceryStores } from "../api/googlePlaces";
 
 /*
   EXPECTED INPUT:
@@ -357,6 +360,7 @@ export default function GroceryListScreen({ route, navigation }) {
   const initialList = useMemo(() => buildGroceryList(selectedRecipes), [selectedRecipes]);
   const [groceryList, setGroceryList] = useState(initialList);
   const [pendingCheckIds, setPendingCheckIds] = useState(() => new Set());
+  const [loadingNearbyStores, setLoadingNearbyStores] = useState(false);
   const pendingTimeoutsRef = useRef(new Map());
 
   useEffect(() => {
@@ -421,6 +425,41 @@ export default function GroceryListScreen({ route, navigation }) {
   const uncheckedItems = groceryList.filter((item) => !item.checked);
   const checkedItems = groceryList.filter((item) => item.checked);
 
+  async function handleNearbyStoresPress() {
+    try {
+      setLoadingNearbyStores(true);
+
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Location Required",
+          "Please allow location access to find nearby grocery stores."
+        );
+        return;
+      }
+
+      const { coords } = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      const stores = await fetchNearbyGroceryStores(coords.latitude, coords.longitude);
+      navigation.navigate("NearbyStores", {
+        stores,
+        userLocation: {
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        },
+      });
+    } catch (error) {
+      Alert.alert(
+        "Store Lookup Failed",
+        "Could not open nearby stores right now. Please try again."
+      );
+      console.log("Nearby stores error:", error?.message || error);
+    } finally {
+      setLoadingNearbyStores(false);
+    }
+  }
+
   function renderItem({ item }) {
     const isPendingCheck = pendingCheckIds.has(item.id);
     const isVisuallyChecked = item.checked || isPendingCheck;
@@ -473,8 +512,17 @@ export default function GroceryListScreen({ route, navigation }) {
               </View>
             </View>
 
-            <Pressable style={styles.nearbyStoresButton} onPress={() => {}}>
-              <Text style={styles.nearbyStoresButtonText}>Nearby Stores</Text>
+            <Pressable
+              style={[
+                styles.nearbyStoresButton,
+                loadingNearbyStores && styles.nearbyStoresButtonDisabled,
+              ]}
+              onPress={handleNearbyStoresPress}
+              disabled={loadingNearbyStores}
+            >
+              <Text style={styles.nearbyStoresButtonText}>
+                {loadingNearbyStores ? "Finding Nearby Stores..." : "Nearby Stores"}
+              </Text>
             </Pressable>
 
             <FlatList
@@ -568,6 +616,9 @@ const styles = StyleSheet.create({
     color: "#000000",
     fontSize: 16,
     fontWeight: "700",
+  },
+  nearbyStoresButtonDisabled: {
+    opacity: 0.7,
   },
   listContent: {
     paddingBottom: 30,

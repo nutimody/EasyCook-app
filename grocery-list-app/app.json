@@ -14,7 +14,13 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.grocerylistapp"
+      "bundleIdentifier": "com.anonymous.grocerylistapp",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "EasyCook uses your location to show nearby grocery stores."
+      },
+      "config": {
+        "googleMapsApiKey": "AIzaSyC955sqfR5E8usRgqOIBYRHAHZF9NvBLoY"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +28,16 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.grocerylistapp"
+      "package": "com.anonymous.grocerylistapp",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyC955sqfR5E8usRgqOIBYRHAHZF9NvBLoY"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
