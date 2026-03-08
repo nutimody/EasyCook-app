@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import {
+  Alert,
   FlatList,
   Image,
   Pressable,
@@ -12,6 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppHeader from "../components/AppHeader";
+import { fetchRecipeDetails } from "../api/spoonacular";
 
 const GREEN = "#1F7A3A";
 const INK = "#111827";
@@ -21,6 +23,8 @@ export default function MyRecipesScreen({
   myRecipes = [],
   onRemoveRecipe,
 }) {
+  const [isGenerating, setIsGenerating] = useState(false);
+
   const getCaloriesText = (recipe) => {
     const nutrients = recipe?.nutrition?.nutrients;
     if (!Array.isArray(nutrients)) return "N/A";
@@ -31,6 +35,35 @@ export default function MyRecipesScreen({
     if (!caloriesNutrient?.amount) return "N/A";
 
     return `${Math.round(caloriesNutrient.amount)} kcal`;
+  };
+
+  const handleGenerateGroceryList = async () => {
+    if (myRecipes.length === 0) {
+      Alert.alert("No recipes", "Add recipes first to generate a grocery list.");
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+
+      const selectedRecipes = await Promise.all(
+        myRecipes.map(async (recipe) => {
+          if (Array.isArray(recipe?.extendedIngredients) && recipe.extendedIngredients.length > 0) {
+            return recipe;
+          }
+
+          try {
+            return await fetchRecipeDetails(recipe.id);
+          } catch {
+            return recipe;
+          }
+        })
+      );
+
+      navigation.navigate("GroceryList", { selectedRecipes });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -100,9 +133,12 @@ export default function MyRecipesScreen({
 
       <Pressable
         style={styles.generateButton}
-        onPress={() => navigation.navigate("GroceryList")}
+        onPress={handleGenerateGroceryList}
+        disabled={isGenerating}
       >
-        <Text style={styles.generateButtonText}>Generate Grocery List</Text>
+        <Text style={styles.generateButtonText}>
+          {isGenerating ? "Generating..." : "Generate Grocery List"}
+        </Text>
       </Pressable>
     </SafeAreaView>
   );
