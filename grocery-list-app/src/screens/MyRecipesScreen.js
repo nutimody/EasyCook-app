@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
+import { useFonts } from "expo-font";
 import AppHeader from "../components/AppHeader";
 import { fetchRecipeDetails } from "../api/spoonacular";
 
@@ -24,6 +26,12 @@ export default function MyRecipesScreen({
   onRemoveRecipe,
 }) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_600SemiBold,
+  });
+
+  if (!fontsLoaded) return null;
 
   const getCaloriesText = (recipe) => {
     const nutrients = recipe?.nutrition?.nutrients;
@@ -147,7 +155,7 @@ export default function MyRecipesScreen({
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFF1BE",
   },
   container: {
     flex: 1,
@@ -166,10 +174,13 @@ const styles = StyleSheet.create({
   },
   recipeCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 5,
+    borderRadius: 10,
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
+    paddingLeft: 14,
+    paddingRight: 14,
+    paddingTop: 20,
+    paddingBottom: 20,
     overflow: "hidden",
     ...Platform.select({
       ios: {
@@ -198,25 +209,26 @@ const styles = StyleSheet.create({
   thumbImage: {
     width: 86,
     height: 86,
-    borderRadius: 5,
+    borderRadius: 10,
     backgroundColor: "#F3F4F6",
   },
   cardTextWrap: { flex: 1 },
   cardTitle: {
+    fontFamily: "Inter_600SemiBold",
     fontSize: 16,
-    fontWeight: "600",
     color: INK,
     marginBottom: 2,
   },
   cardSubtitle: {
+    fontFamily: "Inter_600SemiBold",
     fontSize: 13,
-    fontWeight: "600",
     color: INK,
     opacity: 0.8,
     marginBottom: 10,
   },
   metaBlock: { gap: 4 },
   metaText: {
+    fontFamily: "Inter_400Regular",
     fontSize: 13,
     color: INK,
     opacity: 0.85,

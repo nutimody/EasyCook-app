@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
+import { useFonts } from "expo-font";
 import AppHeader from "../components/AppHeader";
 
 const GREEN = "#1F7A3A";
@@ -18,10 +20,19 @@ const INK = "#111827";
 
 export default function FavoritesScreen({
   navigation,
+  myRecipes = [],
   favoriteRecipes = [],
+  onAddRecipe,
   onAddFavorite,
   onRemoveFavorite,
 }) {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_600SemiBold,
+  });
+
+  if (!fontsLoaded) return null;
+
   const getCaloriesText = (recipe) => {
     const nutrients = recipe?.nutrition?.nutrients;
     if (!Array.isArray(nutrients)) return "N/A";
@@ -85,19 +96,33 @@ export default function FavoritesScreen({
                   </View>
                 </TouchableOpacity>
 
-                <Pressable
-                  style={[styles.actionButton, styles.heartButton, styles.heartButtonSelected]}
-                  onPress={() => {
-                    const isInFavorites = favoriteRecipes.some((r) => r.id === item.id);
-                    if (isInFavorites) {
-                      onRemoveFavorite?.(item.id);
-                    } else {
-                      onAddFavorite?.(item);
-                    }
-                  }}
-                >
-                  <Ionicons name="heart" size={16} color="#FFFFFF" />
-                </Pressable>
+                <View style={styles.cardActionColumn}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={[
+                      styles.addButton,
+                      myRecipes.some((r) => r.id === item.id) && styles.addButtonDisabled,
+                    ]}
+                    onPress={() => onAddRecipe?.(item)}
+                    disabled={myRecipes.some((r) => r.id === item.id)}
+                  >
+                    <Ionicons name="add" size={22} color="#111827" />
+                  </TouchableOpacity>
+
+                  <Pressable
+                    style={[styles.actionButton, styles.heartButton, styles.heartButtonSelected]}
+                    onPress={() => {
+                      const isInFavorites = favoriteRecipes.some((r) => r.id === item.id);
+                      if (isInFavorites) {
+                        onRemoveFavorite?.(item.id);
+                      } else {
+                        onAddFavorite?.(item);
+                      }
+                    }}
+                  >
+                    <Ionicons name="heart" size={16} color="#FFFFFF" />
+                  </Pressable>
+                </View>
               </View>
             )}
           />
@@ -110,7 +135,7 @@ export default function FavoritesScreen({
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFF1BE",
   },
   container: {
     flex: 1,
@@ -128,10 +153,13 @@ const styles = StyleSheet.create({
   },
   recipeCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 5,
+    borderRadius: 10,
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
+    paddingLeft: 14,
+    paddingRight: 14,
+    paddingTop: 20,
+    paddingBottom: 20,
     overflow: "hidden",
     ...Platform.select({
       ios: {
@@ -160,28 +188,47 @@ const styles = StyleSheet.create({
   thumbImage: {
     width: 86,
     height: 86,
-    borderRadius: 5,
+    borderRadius: 10,
     backgroundColor: "#F3F4F6",
   },
   cardTextWrap: { flex: 1 },
   cardTitle: {
+    fontFamily: "Inter_600SemiBold",
     fontSize: 16,
-    fontWeight: "600",
     color: INK,
     marginBottom: 2,
   },
   cardSubtitle: {
+    fontFamily: "Inter_600SemiBold",
     fontSize: 13,
-    fontWeight: "600",
     color: INK,
     opacity: 0.8,
     marginBottom: 10,
   },
   metaBlock: { gap: 4 },
   metaText: {
+    fontFamily: "Inter_400Regular",
     fontSize: 13,
     color: INK,
     opacity: 0.85,
+  },
+  cardActionColumn: {
+    justifyContent: "center",
+    gap: 8,
+    marginLeft: 8,
+  },
+  addButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: "#111827",
+  },
+  addButtonDisabled: {
+    opacity: 0.45,
   },
   actionButton: {
     width: 34,
@@ -195,7 +242,6 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderWidth: 1.5,
     borderColor: "#F2508B",
-    marginLeft: 8,
   },
   heartButtonSelected: {
     backgroundColor: "rgba(242,80,139,0.3)",

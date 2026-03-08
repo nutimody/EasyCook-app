@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -51,6 +52,15 @@ export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
     }
   };
 
+  const navigateDrawerScreen = (screenName) => {
+    const parent = navigation?.getParent?.();
+    if (parent && typeof parent.navigate === "function") {
+      parent.navigate(screenName);
+      return;
+    }
+    navigation.navigate(screenName);
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <AppHeader navigation={navigation} centerText="Recipe Details" />
@@ -63,10 +73,6 @@ export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.content}>
-          <TouchableOpacity onPress={handleAddRecipe} style={styles.addButton}>
-            <Text style={styles.addButtonText}>Add</Text>
-          </TouchableOpacity>
-
           {recipe?.image ? (
             <Image source={{ uri: recipe.image }} style={styles.image} />
           ) : null}
@@ -86,7 +92,7 @@ export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
           {Array.isArray(recipe?.extendedIngredients) &&
           recipe.extendedIngredients.length > 0 ? (
             recipe.extendedIngredients.map((ing, idx) => (
-              <Text key={ing.id ?? `${ing.original}-${idx}`} style={styles.bullet}>
+              <Text key={`${ing.id ?? "ingredient"}-${idx}`} style={styles.bullet}>
                 • {ing.original}
               </Text>
             ))
@@ -101,7 +107,7 @@ export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
           Array.isArray(recipe.analyzedInstructions[0]?.steps) &&
           recipe.analyzedInstructions[0].steps.length > 0 ? (
             recipe.analyzedInstructions[0].steps.map((stepObj, idx) => (
-              <Text key={stepObj.number ?? idx} style={styles.step}>
+              <Text key={`${stepObj.number ?? "step"}-${idx}`} style={styles.step}>
                 {stepObj.number ?? idx + 1}. {stepObj.step}
               </Text>
             ))
@@ -110,6 +116,33 @@ export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
           )}
         </ScrollView>
       )}
+
+      <View style={styles.bottomBar}>
+        <TouchableOpacity
+          style={[styles.bottomButton, styles.bottomButtonSpacing, !recipe && styles.bottomButtonDisabled]}
+          activeOpacity={0.8}
+          onPress={handleAddRecipe}
+          disabled={!recipe}
+        >
+          <Text style={styles.bottomButtonText}>+ Add</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.bottomButton, styles.bottomButtonSpacing]}
+          activeOpacity={0.8}
+          onPress={() => navigateDrawerScreen("My Recipes")}
+        >
+          <Text style={styles.bottomButtonText}>My Recipes</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.bottomButton}
+          activeOpacity={0.8}
+          onPress={() => navigateDrawerScreen("GroceryList")}
+        >
+          <Text style={styles.bottomButtonText}>Grocery List</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -117,7 +150,7 @@ export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFF1BE",
   },
   centered: {
     flex: 1,
@@ -128,6 +161,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     gap: 16,
+    paddingBottom: 24,
   },
   image: {
     width: "100%",
@@ -136,7 +170,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: "700",
+    fontFamily: "PlayfairDisplay_700Bold",
+    fontWeight: "normal",
     color: "#111827",
   },
   message: {
@@ -160,16 +195,44 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 8,
   },
-  addButton: {
-    alignSelf: "flex-start",
-    backgroundColor: "#111827",
+  bottomBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingTop: 16,
+    paddingBottom: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    backgroundColor: "#FFF1BE",
   },
-  addButtonText: {
+  bottomButton: {
+    flex: 1,
+    backgroundColor: "#FFCC00",
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 3 },
+      },
+      android: { elevation: 3 },
+    }),
+  },
+  bottomButtonSpacing: {
+    marginRight: 8,
+  },
+  bottomButtonDisabled: {
+    opacity: 0.6,
+  },
+  bottomButtonText: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: "#000",
+    textAlign: "center",
   },
 });

@@ -1,8 +1,16 @@
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  useFonts,
+  PlayfairDisplay_700Bold,
+} from "@expo-google-fonts/playfair-display";
 import logo from "../../assets/easycook-logo.png";
 
 export default function AppHeader({ navigation, centerText = "Santa Clara, CA" }) {
+  const [fontsLoaded] = useFonts({
+    PlayfairDisplay_700Bold,
+  });
+
   const handleOpenDrawer = () => {
     if (typeof navigation?.openDrawer === "function") {
       navigation.openDrawer();
@@ -21,7 +29,13 @@ export default function AppHeader({ navigation, centerText = "Santa Clara, CA" }
         <Image source={logo} style={styles.logoImage} resizeMode="contain" />
       </View>
 
-      <Text style={styles.centerText} numberOfLines={1}>
+      <Text
+        style={[
+          styles.centerText,
+          fontsLoaded && styles.centerTextPlayfair,
+        ]}
+        numberOfLines={1}
+      >
         {centerText}
       </Text>
 
@@ -66,6 +80,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     marginHorizontal: 8,
+  },
+  centerTextPlayfair: {
+    fontFamily: "PlayfairDisplay_700Bold",
+    fontWeight: "normal",
   },
   menuIcon: {
     gap: 4,

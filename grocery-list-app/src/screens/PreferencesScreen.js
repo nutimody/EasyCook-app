@@ -17,7 +17,7 @@ export default function PreferencesScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFF1BE",
   },
   container: {
     flex: 1,

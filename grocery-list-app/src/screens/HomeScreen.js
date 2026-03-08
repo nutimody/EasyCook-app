@@ -308,7 +308,7 @@ export default function HomeScreen({
                 <Ionicons
                   name="add"
                   size={22}
-                  color={GREEN}
+                  color={INK}
                 />
               </TouchableOpacity>
 
@@ -361,7 +361,7 @@ const GREEN = "#1F7A3A";
 const INK = "#111827";
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#FFFFFF" },
+  safe: { flex: 1, backgroundColor: "#FFF1BE" },
 
   /* ===== Title ===== */
   header: {
@@ -392,21 +392,21 @@ const styles = StyleSheet.create({
   },
   tile: {
     flex: 1,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: GREEN,
+    borderRadius: 14,
     padding: 18,
     minHeight: 140,
     justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#FFEE00",
     ...Platform.select({
       ios: {
         shadowColor: "#000",
-        shadowOpacity: 0.06,
-        shadowRadius: 5,
+        shadowOpacity: 0.18,
+        shadowRadius: 10,
         shadowOffset: { width: 0, height: 6 },
       },
-      android: { elevation: 2 },
+      android: { elevation: 6 },
     }),
   },
   tileEmoji: {
@@ -430,12 +430,19 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   backPill: {
-    borderWidth: 2,
-    borderColor: GREEN,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    backgroundColor: "#FFFFFF",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    backgroundColor: "#FFCC00",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.18,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 6 },
+      },
+      android: { elevation: 6 },
+    }),
   },
   backPillText: {
     fontFamily: "Inter_600SemiBold",
@@ -457,22 +464,35 @@ const styles = StyleSheet.create({
   },
   tag: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 5,
-    borderWidth: 2,
-    borderColor: GREEN,
+    paddingVertical: 12,
+    borderRadius: 14,
     backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#FFCC00",
     alignSelf: "flex-start",
     alignItems: "center",
     minHeight: 42,
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOpacity: 0.18,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 6 },
+      },
+      android: { 
+        elevation: 6
+      },
+    }),
   },
-  tagActive: { backgroundColor: "#EAF6EE" },
+  tagActive: { opacity: 0.85,     backgroundColor: "#FFCC00"
+ },
   tagText: {
     fontFamily: "Inter_600SemiBold",
     color: INK,
     fontSize: 14,
+
   },
-  tagTextActive: { color: "#0B3D1A" },
+  tagTextActive: { color: INK },
 
   loader: { marginTop: 16 },
 
@@ -487,10 +507,13 @@ const styles = StyleSheet.create({
   /* ===== Recipe Card ===== */
   recipeCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 5,
+    borderRadius: 10,
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
+    paddingLeft: 14,
+    paddingRight: 14,
+    paddingTop: 20,
+    paddingBottom: 20,
     overflow: "hidden",
     ...Platform.select({
       ios: {
@@ -519,7 +542,7 @@ const styles = StyleSheet.create({
   thumbImage: {
     width: 86,
     height: 86,
-    borderRadius: 5,
+    borderRadius: 10,
     backgroundColor: "#F3F4F6",
   },
   cardTextWrap: { flex: 1 },
@@ -564,10 +587,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "transparent",
     borderWidth: 1.5,
-    borderColor: GREEN,
+    borderColor: "rgb(17, 24, 39)",
   },
   addButtonSelected: {
-    backgroundColor: "rgba(31,122,58,0.3)",
+    backgroundColor: "rgba(255, 204, 0, 0.3)",
   },
   heartButton: {
     backgroundColor: "transparent",

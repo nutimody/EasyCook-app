@@ -542,7 +542,7 @@ export default function GroceryListScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#F8F6F2",
+    backgroundColor: "#FFF1BE",
   },
   container: {
     flex: 1,
@@ -551,7 +551,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 30,
-    fontWeight: "700",
+    fontFamily: "PlayfairDisplay_700Bold",
+    fontWeight: "normal",
     color: "#1F2937",
     marginBottom: 4,
   },
