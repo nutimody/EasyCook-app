@@ -13,15 +13,9 @@ import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import AppHeader from "../components/AppHeader";
 import { fetchNearbyGroceryStores } from "../api/googlePlaces";
-import {
-  useFonts,
-  PlayfairDisplay_700Bold,
-} from "@expo-google-fonts/playfair-display";
+import { PlayfairDisplay_400Regular, PlayfairDisplay_700Bold} from "@expo-google-fonts/playfair-display";
 
 export default function NearbyStoresScreen({ navigation, route }) {
-  const [fontsLoaded] = useFonts({
-    PlayfairDisplay_700Bold,
-  });
   const [stores, setStores] = useState(route?.params?.stores || []);
   const [loading, setLoading] = useState(!route?.params?.stores?.length);
   const [error, setError] = useState("");
@@ -118,8 +112,6 @@ export default function NearbyStoresScreen({ navigation, route }) {
     );
   }
 
-  if (!fontsLoaded) return null;
-
   return (
     <SafeAreaView style={styles.safe}>
       <AppHeader navigation={navigation} centerText="Nearby Stores" />
@@ -185,7 +177,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 30,
     fontFamily: "PlayfairDisplay_700Bold",
-    fontWeight: "normal",
+    fontWeight: "700",
     color: "#1F2937",
     marginBottom: 4,
   },

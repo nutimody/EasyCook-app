@@ -1,43 +1,43 @@
-import { GOOGLE_MAPS_API_KEY } from "../config";
+// src/api/googlePlaces.js
 
-export async function fetchNearbyGroceryStores(
-  latitude,
-  longitude,
-  radius = 3000
-) {
-  if (!GOOGLE_MAPS_API_KEY) {
-    throw new Error("Google Maps API key is not configured.");
-  }
+import {
+  GOOGLE_PLACES_API_KEY,
+  GOOGLE_PLACES_BASE_URL,
+} from "../config";
 
-  const url =
-    "https://maps.googleapis.com/maps/api/place/nearbysearch/json" +
-    `?location=${latitude},${longitude}` +
-    `&radius=${radius}` +
-    "&type=supermarket" +
-    "&keyword=grocery%20store" +
-    `&key=${GOOGLE_MAPS_API_KEY}`;
+export async function fetchNearbyGroceryStores(latitude, longitude) {
+  const response = await fetch(
+    `${GOOGLE_PLACES_BASE_URL}/places:searchNearby`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+        "X-Goog-FieldMask":
+          "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.primaryType",
+      },
+      body: JSON.stringify({
+        includedPrimaryTypes: ["grocery_store"],
+        maxResultCount: 12,
+        locationRestriction: {
+          circle: {
+            center: {
+              latitude,
+              longitude,
+            },
+            radius: 2000.0,
+          },
+        },
+        rankPreference: "DISTANCE",
+      }),
+    }
+  );
 
-  const response = await fetch(url);
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Google Places error ${response.status}: ${text}`);
+    const errorText = await response.text();
+    throw new Error(`Google Places error: ${errorText}`);
   }
 
   const data = await response.json();
-
-  if (data.status && data.status !== "OK" && data.status !== "ZERO_RESULTS") {
-    throw new Error(data.error_message || `Google Places status: ${data.status}`);
-  }
-
-  return (data.results || []).map((store) => ({
-    id: store.place_id,
-    name: store.name || "Store",
-    address: store.vicinity || store.formatted_address || "Address unavailable",
-    rating: store.rating,
-    location: {
-      latitude: store?.geometry?.location?.lat,
-      longitude: store?.geometry?.location?.lng,
-    },
-    placeId: store.place_id,
-  }));
+  return data.places || [];
 }
