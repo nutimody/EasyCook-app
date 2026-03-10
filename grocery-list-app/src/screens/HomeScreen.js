@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   subHeader: {
     fontFamily: "Inter_400Regular",
     fontSize: 14,
-    color: INK,
+    color: "#4F359B",
     opacity: 0.75,
     textAlign: "center",
     marginBottom: 14,
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
   tileLabel: {
     fontFamily: "Inter_600SemiBold",
     fontSize: 16,
-    color: INK,
+    color: "#4F359B",
   },
 
   /* ===== List Mode ===== */
