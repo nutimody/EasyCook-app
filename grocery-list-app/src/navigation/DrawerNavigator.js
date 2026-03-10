@@ -43,6 +43,7 @@ function HomeStack({
             {...props}
             onAddRecipe={onAddRecipe}
             onAddFavorite={onAddFavorite}
+            myRecipes={myRecipes}
           />
         )}
       </Stack.Screen>

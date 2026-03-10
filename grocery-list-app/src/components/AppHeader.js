@@ -4,7 +4,7 @@ import {
   useFonts,
   PlayfairDisplay_700Bold,
 } from "@expo-google-fonts/playfair-display";
-import logo from "../../assets/easycook-logo.png";
+import logo from "../../assets/easycook-logo-yellow-purple.png";
 
 export default function AppHeader({ navigation, centerText = "Santa Clara, CA" }) {
   const [fontsLoaded] = useFonts({
@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
   logoImage: {
     width: 60,
     height: 60,
+    borderRadius: 30,
   },
   centerText: {
     flex: 1,

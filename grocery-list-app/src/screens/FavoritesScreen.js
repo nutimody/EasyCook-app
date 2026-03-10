@@ -101,12 +101,12 @@ export default function FavoritesScreen({
                     activeOpacity={0.8}
                     style={[
                       styles.addButton,
-                      myRecipes.some((r) => r.id === item.id) && styles.addButtonDisabled,
+                      myRecipes.some((r) => r.id === item.id) && styles.addButtonSelected,
                     ]}
                     onPress={() => onAddRecipe?.(item)}
                     disabled={myRecipes.some((r) => r.id === item.id)}
                   >
-                    <Ionicons name="add" size={22} color="#111827" />
+                    <Ionicons name="add" size={22} color="#4F359B" />
                   </TouchableOpacity>
 
                   <Pressable
@@ -225,10 +225,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "transparent",
     borderWidth: 1.5,
-    borderColor: "#111827",
+    borderColor: "#4F359B",
   },
-  addButtonDisabled: {
-    opacity: 0.45,
+  addButtonSelected: {
+    backgroundColor: "#E4DBFF",
   },
   actionButton: {
     width: 34,

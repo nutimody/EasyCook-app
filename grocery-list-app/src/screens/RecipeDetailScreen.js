@@ -14,11 +14,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { fetchRecipeDetails } from "../api/spoonacular";
 import AppHeader from "../components/AppHeader";
 
-export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
+export default function RecipeDetailScreen({
+  route,
+  navigation,
+  onAddRecipe,
+  myRecipes = [],
+}) {
   const { recipeId } = route.params ?? {};
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const isInMyRecipes = myRecipes.some((savedRecipe) => savedRecipe.id === recipe?.id);
 
   useEffect(() => {
     async function loadRecipe() {
@@ -43,6 +49,11 @@ export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
 
   const handleAddRecipe = () => {
     if (!recipe) return;
+
+    if (isInMyRecipes) {
+      Alert.alert("Already added", "This recipe is already in My Recipes.");
+      return;
+    }
 
     if (onAddRecipe) {
       onAddRecipe(recipe);
@@ -119,7 +130,8 @@ export default function RecipeDetailScreen({ route, navigation, onAddRecipe }) {
 
       <View style={styles.bottomBar}>
         <TouchableOpacity
-          style={[styles.bottomButton, styles.bottomButtonSpacing, !recipe && styles.bottomButtonDisabled]}
+          style={[styles.bottomButton, styles.bottomButtonSpacing, 
+            !recipe && styles.bottomButtonDisabled]}
           activeOpacity={0.8}
           onPress={handleAddRecipe}
           disabled={!recipe}

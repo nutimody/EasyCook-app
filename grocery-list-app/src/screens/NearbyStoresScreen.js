@@ -122,7 +122,7 @@ export default function NearbyStoresScreen({ navigation, route }) {
         <View style={styles.mapWrap}>
           <MapView style={styles.map} initialRegion={mapRegion} region={mapRegion}>
             {userLocation ? (
-              <Marker coordinate={userLocation} title="You are here" pinColor="#2563EB" />
+              <Marker coordinate={userLocation} title="You are here" pinColor="#4F359B" />
             ) : null}
             {stores
               .filter(
@@ -217,14 +217,14 @@ const styles = StyleSheet.create({
     borderColor: "#FFCC00",
     borderRadius: 10,
     padding: 14,
-    marginBottom: 10,
+    marginBottom: 14,
     backgroundColor: "#FFFFFF",
   },
   name: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#111827",
-    marginBottom: 4,
+    color: "#4F359B",
+    marginBottom: 8,
   },
   address: {
     fontSize: 14,

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import AppHeader from "../components/AppHeader";
 import * as Location from "expo-location";
 import { fetchNearbyGroceryStores } from "../api/googlePlaces";
+import { fetchRecipeDetails } from "../api/spoonacular";
 
 /*
   EXPECTED INPUT:
@@ -354,13 +355,13 @@ function buildGroceryList(selectedRecipes = []) {
 
 const CHECK_MOVE_DELAY_MS = 500;
 
-export default function GroceryListScreen({ route, navigation }) {
-  const selectedRecipes = route?.params?.selectedRecipes || [];
-
-  const initialList = useMemo(() => buildGroceryList(selectedRecipes), [selectedRecipes]);
-  const [groceryList, setGroceryList] = useState(initialList);
+export default function GroceryListScreen({ route, navigation, myRecipes = [] }) {
+  const routeRecipes = route?.params?.selectedRecipes;
+  const sourceRecipes = Array.isArray(routeRecipes) ? routeRecipes : myRecipes;
+  const [groceryList, setGroceryList] = useState(() => buildGroceryList(sourceRecipes));
   const [pendingCheckIds, setPendingCheckIds] = useState(() => new Set());
   const [loadingNearbyStores, setLoadingNearbyStores] = useState(false);
+  const [isPreparingList, setIsPreparingList] = useState(false);
   const pendingTimeoutsRef = useRef(new Map());
 
   useEffect(() => {
@@ -369,6 +370,52 @@ export default function GroceryListScreen({ route, navigation }) {
       pendingTimeoutsRef.current.clear();
     };
   }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function hydrateGroceryList() {
+      if (!Array.isArray(sourceRecipes) || sourceRecipes.length === 0) {
+        setGroceryList([]);
+        return;
+      }
+
+      try {
+        setIsPreparingList(true);
+
+        const detailedRecipes = await Promise.all(
+          sourceRecipes.map(async (recipe) => {
+            if (
+              Array.isArray(recipe?.extendedIngredients) &&
+              recipe.extendedIngredients.length > 0
+            ) {
+              return recipe;
+            }
+
+            try {
+              return await fetchRecipeDetails(recipe.id);
+            } catch {
+              return recipe;
+            }
+          })
+        );
+
+        if (!isCancelled) {
+          setGroceryList(buildGroceryList(detailedRecipes));
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsPreparingList(false);
+        }
+      }
+    }
+
+    hydrateGroceryList();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [sourceRecipes]);
 
   function toggleChecked(id) {
     const tappedItem = groceryList.find((item) => item.id === id);
@@ -492,7 +539,14 @@ export default function GroceryListScreen({ route, navigation }) {
           Built from your selected recipes
         </Text>
 
-        {groceryList.length === 0 ? (
+        {isPreparingList ? (
+          <View style={styles.emptyWrap}>
+            <Text style={styles.emptyText}>Generating grocery list...</Text>
+            <Text style={styles.emptySubtext}>
+              Pulling ingredients from your saved recipes.
+            </Text>
+          </View>
+        ) : groceryList.length === 0 ? (
           <View style={styles.emptyWrap}>
             <Text style={styles.emptyText}>No grocery items yet.</Text>
             <Text style={styles.emptySubtext}>

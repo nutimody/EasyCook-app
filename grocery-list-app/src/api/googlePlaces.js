@@ -5,7 +5,29 @@ import {
   GOOGLE_PLACES_BASE_URL,
 } from "../config";
 
+function normalizePlace(place) {
+  const latitude = place?.location?.latitude;
+  const longitude = place?.location?.longitude;
+
+  return {
+    id: place?.id || `${latitude}-${longitude}`,
+    name: place?.displayName?.text || "Unknown store",
+    address: place?.formattedAddress || "Address unavailable",
+    rating: place?.rating ?? null,
+    primaryType: place?.primaryType || null,
+    location:
+      typeof latitude === "number" && typeof longitude === "number"
+        ? { latitude, longitude }
+        : null,
+    rawPlace: place,
+  };
+}
+
 export async function fetchNearbyGroceryStores(latitude, longitude) {
+  if (!GOOGLE_PLACES_API_KEY) {
+    throw new Error("Missing Google Places API key.");
+  }
+
   const response = await fetch(
     `${GOOGLE_PLACES_BASE_URL}/places:searchNearby`,
     {
@@ -39,5 +61,5 @@ export async function fetchNearbyGroceryStores(latitude, longitude) {
   }
 
   const data = await response.json();
-  return data.places || [];
+  return (data.places || []).map(normalizePlace);
 }

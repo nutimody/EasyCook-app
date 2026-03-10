@@ -308,7 +308,7 @@ export default function HomeScreen({
                 <Ionicons
                   name="add"
                   size={22}
-                  color={INK}
+                  color="#4F359B"
                 />
               </TouchableOpacity>
 
@@ -587,10 +587,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "transparent",
     borderWidth: 1.5,
-    borderColor: "rgb(17, 24, 39)",
+    borderColor: "#4F359B",
   },
   addButtonSelected: {
-    backgroundColor: "rgba(255, 204, 0, 0.3)",
+    backgroundColor: "#E4DBFF",
   },
   heartButton: {
     backgroundColor: "transparent",
