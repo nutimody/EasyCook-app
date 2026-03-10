@@ -76,8 +76,8 @@ export default function NearbyStoresScreen({ navigation, route }) {
       return {
         latitude: first.latitude,
         longitude: first.longitude,
-        latitudeDelta: 0.8,
-        longitudeDelta: 0.8,
+        latitudeDelta: 0.06,
+        longitudeDelta: 0.06,
       };
     }
 

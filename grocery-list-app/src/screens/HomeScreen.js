@@ -24,14 +24,15 @@ import * as Location from "expo-location";
 
 
 const CUISINES = [
+
   { key: "indian", label: "Indian", emoji: "🇮🇳" },
   { key: "italian", label: "Italian", emoji: "🇮🇹" },
   { key: "mexican", label: "Mexican", emoji: "🇲🇽" },
   { key: "thai", label: "Thai", emoji: "🇹🇭" },
   { key: "chinese", label: "Chinese", emoji: "🇨🇳" },
-  { key: "japanese", label: "Japanese", emoji: "🇯🇵" },
+  { key: "japanese", label: "Japanese", emoji: "🇯🇵" }, 
   { key: "breakfast", label: "Breakfast", emoji: "🍳" },
-  { key: "dessert", label: "Dessert", emoji: "🍰" },
+  { key: "dessert", label: "Dessert", emoji: "🍰" }, 
 ];
 
 export default function HomeScreen({
@@ -179,9 +180,9 @@ export default function HomeScreen({
           contentContainerStyle={styles.gridContainer}
           ListHeaderComponent={
             <>
-              <Text style={styles.header}>Choose a Cuisine</Text>
+              <Text style={styles.header}>Choose a Category</Text>
               <Text style={styles.subHeader}>
-                Tap a cuisine to see recipes
+                Tap a category to see recipes
               </Text>
             </>
           }
@@ -221,7 +222,7 @@ export default function HomeScreen({
                 onPress={resetToGrid}
                 style={styles.backPill}
               >
-                <Text style={styles.backPillText}>← All cuisines</Text>
+                <Text style={styles.backPillText}>← All categories</Text>
               </TouchableOpacity>
 
               {activeCuisine ? (
@@ -233,7 +234,7 @@ export default function HomeScreen({
               )}
             </View>
 
-            <Text style={styles.header}>Choose a Cuisine</Text>
+            <Text style={styles.header}>Choose a Category</Text>
 
             {/* tags */}
             <ScrollView
@@ -336,7 +337,7 @@ export default function HomeScreen({
         ListEmptyComponent={
           !loading ? (
             <Text style={styles.emptyText}>
-              Pick a cuisine to load recipes.
+              Pick a category to load recipes.
             </Text>
           ) : null
         }
