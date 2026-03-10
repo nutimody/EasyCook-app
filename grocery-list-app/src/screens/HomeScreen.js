@@ -319,9 +319,9 @@ export default function HomeScreen({
                 onPress={() => handleRecipeToggle(item)}
               >
                 <Ionicons
-                  name="add"
-                  size={22}
-                  color="#4F359B"
+                  name="add-sharp"
+                  size={24}
+                  color={isInMyRecipes ? "#ffffff" : "#4F359B"}
                 />
               </TouchableOpacity>
 
@@ -592,7 +592,14 @@ const styles = StyleSheet.create({
     borderColor: "#4F359B",
   },
   addButtonSelected: {
-    backgroundColor: "#E4DBFF",
+    backgroundColor: "rgb(79, 53, 155, 0.3)",
+    borderColor: "#4F359B",
+  },
+  addButtonIcon: {
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 32,
+    lineHeight: 32,
+    alignItems: "center",
   },
   heartButton: {
     backgroundColor: "transparent",
