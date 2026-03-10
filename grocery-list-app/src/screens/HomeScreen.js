@@ -30,6 +30,8 @@ const CUISINES = [
   { key: "thai", label: "Thai", emoji: "🇹🇭" },
   { key: "chinese", label: "Chinese", emoji: "🇨🇳" },
   { key: "japanese", label: "Japanese", emoji: "🇯🇵" },
+  { key: "breakfast", label: "Breakfast", emoji: "🍳" },
+  { key: "dessert", label: "Dessert", emoji: "🍰" },
 ];
 
 export default function HomeScreen({

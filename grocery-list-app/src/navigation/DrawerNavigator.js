@@ -55,6 +55,7 @@ export default function DrawerNavigator({
   myRecipes,
   favoriteRecipes,
   onAddRecipe,
+  onMoveRecipeToMeal,
   onRemoveRecipe,
   onAddFavorite,
   onRemoveFavorite,
@@ -111,6 +112,7 @@ export default function DrawerNavigator({
           <MyRecipesScreen
             {...props}
             myRecipes={myRecipes}
+            onMoveRecipeToMeal={onMoveRecipeToMeal}
             onRemoveRecipe={onRemoveRecipe}
           />
         )}

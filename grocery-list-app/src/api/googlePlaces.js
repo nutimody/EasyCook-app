@@ -40,14 +40,14 @@ export async function fetchNearbyGroceryStores(latitude, longitude) {
       },
       body: JSON.stringify({
         includedPrimaryTypes: ["grocery_store"],
-        maxResultCount: 12,
+        maxResultCount: 10,
         locationRestriction: {
           circle: {
             center: {
               latitude,
               longitude,
             },
-            radius: 2000.0,
+            radius: 5000.0,
           },
         },
         rankPreference: "DISTANCE",

@@ -21,10 +21,14 @@ async function request(path, params = {}) {
   return res.json();
 }
 
-// 1) Recipes by cuisine (simple starting point)
-export function fetchRecipesByCuisine(cuisine, number = 10) {
+// 1) Recipes for home tiles: cuisines plus meal/dish types like breakfast or dessert
+export function fetchRecipesByCuisine(cuisineOrType, number = 10) {
+  const normalized = String(cuisineOrType || "").toLowerCase();
+  const isMealType = normalized === "breakfast" || normalized === "dessert";
+
   return request("/recipes/complexSearch", {
-    cuisine,
+    cuisine: isMealType ? undefined : cuisineOrType,
+    type: isMealType ? normalized : undefined,
     number,
     addRecipeInformation: true, // gives title, image, etc.
     addRecipeNutrition: true,
