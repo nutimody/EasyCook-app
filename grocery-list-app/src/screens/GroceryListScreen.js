@@ -91,7 +91,13 @@ const PACKAGE_RULES = {
 };
 
 function normalizeName(name = "") {
-  const cleaned = name.toLowerCase().trim();
+  const cleaned = name
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, " ")
+    .split(",")[0]
+    .replace(/\b(chopped|diced|minced|sliced|fresh|large|medium|small|extra-virgin)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   return INGREDIENT_ALIASES[cleaned] || cleaned;
 }
 
@@ -232,6 +238,7 @@ function combineIngredients(allIngredients) {
 
     const name = normalizeName(rawName);
     const { amount, unit } = normalizeUnit(Number(ing.amount || 0), ing.unit || "");
+    const aisle = ing.aisle?.trim() || "";
 
     const key = `${name}__${unit}`;
 
@@ -240,68 +247,77 @@ function combineIngredients(allIngredients) {
         name,
         amount: 0,
         unit,
+        aisle,
       };
     }
 
     map[key].amount += amount;
+
+    if (!map[key].aisle && aisle) {
+      map[key].aisle = aisle;
+    }
   }
 
   return Object.values(map);
 }
 
 function toPurchaseItem(item) {
-  const { name, amount, unit } = item;
+  const { name, amount, unit, aisle } = item;
   const category = guessCategory(name);
-  const formatLabel = (itemName, amountText) => `${itemName} (${amountText})`;
+  const subtitle = aisle || category;
 
   if (PRODUCE_COUNT_RULES[name]) {
     const qty = Math.max(1, Math.ceil(amount));
-    const label = formatLabel(name, `${qty}`);
+    const amountText = `${qty}`;
 
     return {
       id: `${name}-produce-${qty}`,
       name,
-      label,
+      amountText,
       checked: false,
       category,
+      subtitle,
     };
   }
 
   if (BUNCH_RULES[name]) {
-    const label = formatLabel(name, "1 bunch");
+    const amountText = "1 bunch";
 
     return {
       id: `${name}-bunch-1`,
       name,
-      label,
+      amountText,
       checked: false,
       category,
+      subtitle,
     };
   }
 
   if (BULB_RULES[name]) {
     const clovesPerBulb = BULB_RULES[name].clovesPerBulb || 8;
     const bulbs = Math.max(1, Math.ceil(amount / clovesPerBulb));
-    const label = formatLabel(name, `${bulbs} ${bulbs === 1 ? "bulb" : "bulbs"}`);
+    const amountText = `${bulbs} ${bulbs === 1 ? "bulb" : "bulbs"}`;
 
     return {
       id: `${name}-bulb-${bulbs}`,
       name,
-      label,
+      amountText,
       checked: false,
       category,
+      subtitle,
     };
   }
 
   if (BOTTLE_RULES[name]) {
-    const label = formatLabel(name, "1 bottle");
+    const amountText = "1 bottle";
 
     return {
       id: `${name}-bottle-1`,
       name,
-      label,
+      amountText,
       checked: false,
       category,
+      subtitle,
     };
   }
 
@@ -311,17 +327,18 @@ function toPurchaseItem(item) {
     const { packages, size } = roundUpToPackage(totalAmount, rule.sizes);
     const packageSizeText = formatImperialAmount(size, rule.unit);
 
-    const label =
+    const amountText =
       packages === 1
-        ? formatLabel(name, `1 x ${packageSizeText}`)
-        : formatLabel(name, `${packages} x ${packageSizeText}`);
+        ? `1 x ${packageSizeText}`
+        : `${packages} x ${packageSizeText}`;
 
     return {
       id: `${name}-package-${packages}-${size}${rule.unit}`,
       name,
-      label,
+      amountText,
       checked: false,
       category,
+      subtitle,
     };
   }
 
@@ -333,19 +350,28 @@ function toPurchaseItem(item) {
     fallbackUnit = "x";
   }
 
-  const label = formatLabel(name, formatImperialAmount(fallbackAmount, fallbackUnit));
+  const amountText = formatImperialAmount(fallbackAmount, fallbackUnit);
 
   return {
     id: `${name}-${fallbackUnit}-${fallbackAmount}`,
     name,
-    label,
+    amountText,
     checked: false,
     category,
+    subtitle,
   };
 }
 
 function buildGroceryList(selectedRecipes = []) {
-  const allIngredients = selectedRecipes.flatMap(
+  const uniqueRecipes = Array.from(
+    new Map(
+      selectedRecipes
+        .filter(Boolean)
+        .map((recipe) => [recipe.id ?? JSON.stringify(recipe), recipe])
+    ).values()
+  );
+
+  const allIngredients = uniqueRecipes.flatMap(
     (recipe) => recipe.extendedIngredients || []
   );
 
@@ -523,9 +549,18 @@ export default function GroceryListScreen({ route, navigation, myRecipes = [] })
 
         <View style={styles.itemTextWrap}>
           <Text style={[styles.itemText, isVisuallyChecked && styles.itemTextChecked]}>
-            {item.label}
+            {item.name}
+          </Text>
+          <Text
+            style={[styles.itemSubtext, isVisuallyChecked && styles.itemSubtextChecked]}
+          >
+            {item.subtitle}
           </Text>
         </View>
+
+        <Text style={[styles.itemAmount, isVisuallyChecked && styles.itemTextChecked]}>
+          {item.amountText}
+        </Text>
       </TouchableOpacity>
     );
   }
@@ -714,7 +749,21 @@ const styles = StyleSheet.create({
   itemText: {
     fontSize: 16,
     color: "#111827",
-    fontWeight: "500",
+    fontWeight: "600",
+  },
+  itemSubtext: {
+    marginTop: 2,
+    fontSize: 13,
+    color: "#6B7280",
+  },
+  itemSubtextChecked: {
+    color: "#9CA3AF",
+  },
+  itemAmount: {
+    marginLeft: 12,
+    fontSize: 14,
+    color: "#111827",
+    fontWeight: "600",
   },
   itemTextChecked: {
     textDecorationLine: "line-through",

@@ -6,7 +6,11 @@ import {
 } from "@expo-google-fonts/playfair-display";
 import logo from "../../assets/easycook-logo-yellow-purple.png";
 
-export default function AppHeader({ navigation, centerText = "Santa Clara, CA" }) {
+export default function AppHeader({
+  navigation,
+  centerText = "Santa Clara, CA",
+  onLogoPress,
+}) {
   const [fontsLoaded] = useFonts({
     PlayfairDisplay_700Bold,
   });
@@ -23,11 +27,22 @@ export default function AppHeader({ navigation, centerText = "Santa Clara, CA" }
     }
   };
 
+  const handleLogoPress = () => {
+    if (typeof onLogoPress === "function") {
+      onLogoPress();
+    }
+  };
+
   return (
     <View style={styles.topBar}>
-      <View style={styles.iconCircle}>
+      <TouchableOpacity
+        activeOpacity={onLogoPress ? 0.7 : 1}
+        style={styles.iconCircle}
+        onPress={handleLogoPress}
+        disabled={!onLogoPress}
+      >
         <Image source={logo} style={styles.logoImage} resizeMode="contain" />
-      </View>
+      </TouchableOpacity>
 
       <Text
         style={[

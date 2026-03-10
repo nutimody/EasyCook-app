@@ -10,6 +10,7 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -48,6 +49,7 @@ export default function HomeScreen({
   const [loading, setLoading] = useState(false);
   const [activeCuisine, setActiveCuisine] = useState(null);
   const [headerLocation, setHeaderLocation] = useState("Santa Clara, CA");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // NEW: whether we’re showing the initial tile grid or the recipe list
   const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
@@ -103,6 +105,7 @@ export default function HomeScreen({
     try {
       setActiveCuisine(cuisine);
       setLoading(true);
+      setSearchQuery("");
 
       // switch to list immediately so user sees the UI change right away
       setViewMode("list");
@@ -121,7 +124,15 @@ export default function HomeScreen({
     setActiveCuisine(null);
     setRecipes([]);
     setLoading(false);
+    setSearchQuery("");
   };
+
+  const filteredRecipes = recipes.filter((recipe) => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) return true;
+
+    return (recipe?.title || "").toLowerCase().includes(normalizedQuery);
+  });
 
   const getCaloriesText = (recipe) => {
     const nutrients = recipe?.nutrition?.nutrients;
@@ -206,32 +217,31 @@ export default function HomeScreen({
   // =========================
   return (
     <SafeAreaView style={styles.safe}>
-      <AppHeader navigation={navigation} centerText={headerLocation} />
+      <AppHeader
+        navigation={navigation}
+        centerText={headerLocation}
+        onLogoPress={resetToGrid}
+      />
       <FlatList
         key="recipe-list"
-        data={recipes}
+        data={filteredRecipes}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}
         ListHeaderComponent={
           <>
-            {/* Back to grid */}
-            <View style={styles.backRow}>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={resetToGrid}
-                style={styles.backPill}
-              >
-                <Text style={styles.backPillText}>← All categories</Text>
-              </TouchableOpacity>
-
-              {activeCuisine ? (
-                <Text style={styles.activeCuisineText}>
-                  {activeCuisine.toUpperCase()}
-                </Text>
-              ) : (
-                <View />
-              )}
+            <View style={styles.searchWrap}>
+              <Ionicons name="search" size={18} color="#6B7280" />
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="Search recipes"
+                placeholderTextColor="#9CA3AF"
+                style={styles.searchInput}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="search"
+              />
             </View>
 
             <Text style={styles.header}>Choose a Category</Text>
@@ -337,7 +347,9 @@ export default function HomeScreen({
         ListEmptyComponent={
           !loading ? (
             <Text style={styles.emptyText}>
-              Pick a category to load recipes.
+              {searchQuery.trim()
+                ? "No recipes match your search."
+                : "Pick a category to load recipes."}
             </Text>
           ) : null
         }
@@ -426,37 +438,24 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 14,
   },
-  backRow: {
+  searchWrap: {
+    marginTop: 4,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 4,
-  },
-  backPill: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    gap: 10,
+    backgroundColor: "#FFFFFF",
     borderRadius: 14,
-    backgroundColor: "#FFCC00",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOpacity: 0.18,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 6 },
-      },
-      android: { elevation: 6 },
-    }),
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
-  backPillText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 13,
+  searchInput: {
+    flex: 1,
+    fontFamily: "Inter_400Regular",
+    fontSize: 14,
     color: INK,
-  },
-  activeCuisineText: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 12,
-    color: INK,
-    opacity: 0.7,
+    padding: 0,
   },
 
   /* ===== tags ===== */
